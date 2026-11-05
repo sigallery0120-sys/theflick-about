@@ -767,8 +767,83 @@ const clearFront=new THREE.ShaderMaterial({
     }`
 });
 const clearIn=new THREE.Mesh(logoGeo,clearBack); clearIn.visible=false; clearIn.renderOrder=-2; logo.add(clearIn);
+
+/* ---------- 옵티컬 글래스: 실제 두께를 따라가는 굴절 ----------
+   1) 로고의 뒷면(법선과 깊이)을 따로 한 번 그려 둠
+   2) 앞면에서 꺾여 들어간 빛이 두께만큼 지나가 뒷면(베벨 포함)에서 다시 꺾여 나오는 길을 계산
+   3) 나온 빛이 페이지(배경·글자)나 스튜디오 조명에 닿는 색을 가져옴. 빨강·초록·파랑 굴절률을 아주 조금씩만 다르게 → 굴절이 강한 곳에만 은은한 분산 */
+const backRT=new THREE.WebGLRenderTarget(2,2,{type:THREE.HalfFloatType,depthBuffer:true});
+const backMat=new THREE.ShaderMaterial({ side:THREE.BackSide,
+  vertexShader:`varying vec3 vNv; varying float vZ; void main(){ vec4 mv=modelViewMatrix*vec4(position,1.); vNv=normalize(normalMatrix*normal); vZ=-mv.z; gl_Position=projectionMatrix*mv; }`,
+  fragmentShader:`varying vec3 vNv; varying float vZ; void main(){ gl_FragColor=vec4(normalize(vNv)*.5+.5,clamp((vZ-6.)/12.,0.001,1.)); }`
+});
+const backMesh=new THREE.Mesh(logoGeo,backMat); backMesh.layers.set(1); logo.add(backMesh);
+const OPT_VS=`
+  varying vec3 vN; varying vec3 vP;
+  void main(){ vec4 mv=modelViewMatrix*vec4(position,1.); vN=normalize(normalMatrix*normal); vP=mv.xyz; gl_Position=projectionMatrix*mv; }`;
+const OPT_FS=TEXT_GLSL+`
+  uniform sampler2D uBack; uniform vec2 uRes; uniform mat4 uProj; uniform float uLight;
+  varying vec3 vN; varying vec3 vP;
+  /* 부드러운 스튜디오: 위로 갈수록 밝은 바탕 + 길게 이어지는 소프트박스 + 옅은 회색 띠 몇 줄(유리 속 굴절선의 재료) */
+  float env(vec3 d){
+    float up=smoothstep(-.8,.9,d.y);
+    float g=mix(mix(.03,.66,uLight),mix(.07,.9,uLight),up);
+    float b1=smoothstep(.22,.0,abs(d.x+.5))*smoothstep(-.4,.5,d.y);      /* 왼쪽 세로로 긴 조명 */
+    float b2=smoothstep(.16,.0,abs(d.y-.58))*smoothstep(1.,.2,abs(d.x)); /* 위쪽 가로로 긴 조명 */
+    float b3=smoothstep(.12,.0,abs(d.x-.62))*smoothstep(-.2,.6,d.y)*.6;   /* 오른쪽 가는 조명 */
+    float ln=smoothstep(.035,.0,abs(d.y+.28))+smoothstep(.03,.0,abs(d.y-.12))*.7+smoothstep(.03,.0,abs(d.x+.2))*.55+smoothstep(.04,.0,abs(d.y+.55))*.6;
+    float light=(b1*.55+b2*.5+b3*.45)*mix(.42,.2,uLight);
+    float dark=ln*mix(.0,.3,uLight)+smoothstep(.0,-.7,d.y)*mix(.0,.12,uLight);
+    float edgeGlow=ln*mix(.28,.0,uLight);
+    return clamp(g+light+edgeGlow-dark,0.,1.2);
+  }
+  vec2 scr(vec3 p){ vec4 c=uProj*vec4(p,1.); return c.xy/c.w*.5+.5; }
+  float pageCh(vec2 uv,int ch){
+    vec2 css=vec2(uv.x*uView.x,(1.-uv.y)*uView.y);
+    vec3 c=ontoBg(txt(css)*uTextOn);
+    return ch==0?c.r:ch==1?c.g:c.b;
+  }
+  /* 한 색(채널)의 빛 경로 */
+  float through(vec3 Nf,vec3 I,float eta,int ch){
+    vec3 T=refract(I,Nf,1./eta);
+    vec4 bk=texture2D(uBack,gl_FragCoord.xy/uRes);
+    float zf=-vP.z, zb=bk.a*12.+6.;
+    float th=bk.a>.0005?max(zb-zf,.03):.4;
+    vec3 X=vP+T*(th/max(-T.z,.3));
+    vec4 b1=texture2D(uBack,scr(X));
+    vec3 Nb=b1.a>.0005?normalize(b1.rgb*2.-1.):-Nf;
+    vec3 E=refract(T,-Nb,eta);
+    float tir=0.;
+    if(dot(E,E)<1e-4){ E=reflect(T,-Nb); tir=1.; }
+    vec2 uvY=scr(X+E*(1.4/max(-E.z,.25)));
+    float page=pageCh(uvY,ch);
+    /* 옆으로 크게 꺾여 나간 빛(베벨·측면)은 페이지 대신 스튜디오 조명을 비춤 → 여러 겹의 굴절선 */
+    float side=clamp(smoothstep(.35,.85,length(E.xy))+tir,0.,1.);
+    return mix(page,env(E)*(ch==0?1.:ch==1?1.:1.02),side);
+  }
+  void main(){
+    vec3 N=normalize(vN), V=normalize(-vP), I=-V;
+    float ndv=clamp(dot(N,V),0.,1.);
+    vec3 tr=vec3(through(N,I,1.492,0),through(N,I,1.5,1),through(N,I,1.512,2));
+    vec3 R=reflect(I,N);
+    float fres=.04+.96*pow(1.-ndv,5.);
+    vec3 rf=vec3(env(R));
+    float spec=pow(max(env(R)-.85,0.)*4.,2.)*.35;
+    vec3 col=mix(tr,rf,fres)+spec;
+    gl_FragColor=vec4(col,1.);
+  }`;
+const optMat=new THREE.ShaderMaterial({ uniforms:Object.assign({uBack:{value:backRT.texture},uRes:{value:new THREE.Vector2(1,1)},uProj:{value:new THREE.Matrix4()},uLight:{value:0}},TEXTU),
+  vertexShader:OPT_VS, fragmentShader:OPT_FS });
+/* 두께 비교(A 1.0 / B 1.3 / C 1.6): 원본은 보관, 앞쪽 절반은 앞으로·뒤쪽 절반은 뒤로 밀어서 늘림 → 베벨 모양 그대로 */
+const posAttr=logoGeo.getAttribute('position'), origZ=Float32Array.from({length:posAttr.count},(_,i)=>posAttr.getZ(i));
+let halfT=0; origZ.forEach(z=>{ halfT=Math.max(halfT,Math.abs(z)); });
+let curThick=1;
+function setThick(f){ if(f===curThick) return; curThick=f; const d=(f-1)*halfT; for(let i=0;i<posAttr.count;i++){ const z=origZ[i]; posAttr.setZ(i,z+(z>0?d:z<0?-d:0)); } posAttr.needsUpdate=true; logoGeo.computeBoundingSphere(); }
+window.__flickThick=function(f){ thickWant=[1,1.3,1.6].includes(f)?f:1; };
+let thickWant=1;
 let matName='matte', frameNo=0;
-window.__flickMat=function(n){ matName=(n==='glass'||n==='clear')?n:'matte'; if(matName!=='matte'){ try{ drawHeroText(); TXT.sig=heroSig(); }catch(e){ TXT.ok=false; } } logo.material=matName==='glass'?glassMat:matName==='clear'?clearFront:matte; clearIn.visible=matName==='clear'; };
+window.__flickMat=function(n){ matName=['glass','clear','optical'].includes(n)?n:'matte'; if(matName!=='matte'){ try{ drawHeroText(); TXT.sig=heroSig(); }catch(e){ TXT.ok=false; } } logo.material=matName==='glass'?glassMat:matName==='clear'?clearFront:matName==='optical'?optMat:matte; clearIn.visible=matName==='clear'; };
+if(window.__flickThickWant) window.__flickThick(window.__flickThickWant);
 if(window.__flickMatWant) window.__flickMat(window.__flickMatWant);
 edgeMat.visible=false; inside.visible=false; rim.visible=false;
 spin.add(logo);
@@ -960,6 +1035,14 @@ function frameBody(){
     TEXTU.uTOrg.value.set(TXT.ox,TXT.oy); TEXTU.uTSize.value.set(TXT.w,TXT.h);
     if(!(frameNo++%6)){ TEXTU.uInk.value.copy(cssCol('--ink')); TEXTU.uDim.value.copy(cssCol('--dim')); TEXTU.uBg.value.copy(cssCol('--bg')); } }
   stars.rotation.z=time*.004;
+  setThick(matName==='optical'?thickWant:1);
+  if(matName==='optical'){
+    const w=renderer.domElement.width, h=renderer.domElement.height;
+    if(backRT.width!==w||backRT.height!==h) backRT.setSize(w,h);
+    optMat.uniforms.uRes.value.set(w,h); optMat.uniforms.uProj.value.copy(cam.projectionMatrix); optMat.uniforms.uLight.value=lightAmt;
+    cam.layers.set(1); renderer.setRenderTarget(backRT); renderer.setClearColor(0x000000,0); renderer.clear(); renderer.render(scene,cam);
+    renderer.setRenderTarget(null); cam.layers.set(0);
+  }
   renderer.render(scene,cam);
   /* 안전장치: 3D 쪽 첫 화면 글자가 실제로 그려졌는지 확인. 계속 안 보이면 원래 글자로 되돌림 */
   if(false&&textQuad.visible&&!TXT.checked&&TXT.probe){
@@ -1134,6 +1217,7 @@ main > section, #services > section, #services > .svc-intro{position:relative}
   <button type="button" id="ed-save" hidden>저장</button>
   <button type="button" id="ed-copy" hidden>값 복사</button>
   <button type="button" id="ed-mat" hidden title="로고 재질 바꾸기">재질: 매트</button>
+  <button type="button" id="ed-thick" hidden title="옵티컬 글래스 두께 비교">두께: A 원본</button>
   <button type="button" id="ed-helpbtn" hidden aria-expanded="false">도움말</button>
   <span class="st" id="ed-st" aria-live="polite"></span>
 </div>
@@ -1299,9 +1383,12 @@ main > section, #services > section, #services > .svc-intro{position:relative}
   const bHelp=$('ed-helpbtn'); let helpOpen=false;
   /* 로고 재질: 매트 ↔ 글래스 (저장하면 모두에게 적용) */
   const bMat=$('ed-mat');
-  const MATS=['matte','glass','clear'], MATN={matte:'매트',glass:'글래스',clear:'클리어 글래스'};
-  function applyMat(){ const m=MATS.includes(S.mat)?S.mat:'matte'; window.__flickMatWant=m; if(window.__flickMat) window.__flickMat(m); bMat.textContent='재질: '+MATN[m]; }
-  bMat.onclick=()=>{ snapshot(); const i=MATS.indexOf(MATS.includes(S.mat)?S.mat:'matte'); S.mat=MATS[(i+1)%3]; applyMat(); markDirty(); say('로고 재질: '+MATN[S.mat]+' · 저장하면 모두에게 적용돼요'); };
+  const MATS=['matte','glass','clear','optical'], MATN={matte:'매트',glass:'글래스',clear:'클리어 글래스',optical:'옵티컬 글래스'};
+  const bThick=$('ed-thick'), THK=[1,1.3,1.6], THN={1:'A 원본',1.3:'B 1.3배',1.6:'C 1.6배'};
+  function applyMat(){ const m=MATS.includes(S.mat)?S.mat:'matte'; window.__flickMatWant=m; if(window.__flickMat) window.__flickMat(m); bMat.textContent='재질: '+MATN[m];
+    const t=THK.includes(S.thick)?S.thick:1; window.__flickThickWant=t; if(window.__flickThick) window.__flickThick(t); bThick.textContent='두께: '+THN[t]; bThick.hidden=!on||m!=='optical'; }
+  bThick.onclick=()=>{ snapshot(); const i=THK.indexOf(THK.includes(S.thick)?S.thick:1); S.thick=THK[(i+1)%3]; applyMat(); markDirty(); say('유리 두께: '+THN[S.thick]+' · 옵티컬 글래스에만 적용'); };
+  bMat.onclick=()=>{ snapshot(); const i=MATS.indexOf(MATS.includes(S.mat)?S.mat:'matte'); S.mat=MATS[(i+1)%MATS.length]; applyMat(); markDirty(); say('로고 재질: '+MATN[S.mat]+' · 저장하면 모두에게 적용돼요'); };
   bHelp.onclick=()=>{ helpOpen=!helpOpen; help.hidden=!helpOpen; bHelp.setAttribute('aria-expanded',helpOpen); bHelp.textContent=helpOpen?'도움말 닫기':'도움말'; };
 
   const gapEls={};
@@ -1312,7 +1399,7 @@ main > section, #services > section, #services > .svc-intro{position:relative}
     if(!v) mEls.forEach(m=>m.classList.remove('show'));
     on=v; document.documentElement.classList.toggle('ed-on',on);
     bToggle.textContent=on?'편집 끝내기':'편집 모드';
-    [bAdd,bUndo,bSave,bCopy,bHelp,bMat].forEach(b=>b.hidden=!on); refreshUnhide();
+    [bAdd,bUndo,bSave,bCopy,bHelp,bMat].forEach(b=>b.hidden=!on); if(typeof applyMat==='function') applyMat(); refreshUnhide();
     help.hidden=!on||!helpOpen; if(!on) select(null);
     say(on?(dirty?'저장 안 된 변경 있음':''):'');
     if(on) loop();
@@ -1706,7 +1793,7 @@ main > section, #services > section, #services > .svc-intro{position:relative}
     const gaps={}; Object.entries(S.gaps).forEach(([k,v])=>{ if(v) gaps[k]=v; });
     const hts={}; Object.entries(S.hts||{}).forEach(([k,v])=>{ if(v) hts[k]=v; });
     const groups={}; Object.entries(S.groups||{}).forEach(([g,ks])=>{ const a=ks.filter(q=>els[q]); if(a.length>1) groups[g]=a; });
-    return {v:5,mat:['glass','clear'].includes(S.mat)?S.mat:'matte',items,gaps,hts,groups,added:clone(S.added),viewport:innerWidth+'x'+innerHeight,savedAt:new Date().toISOString()};
+    return {v:5,mat:['glass','clear','optical'].includes(S.mat)?S.mat:'matte',thick:[1.3,1.6].includes(S.thick)?S.thick:1,items,gaps,hts,groups,added:clone(S.added),viewport:innerWidth+'x'+innerHeight,savedAt:new Date().toISOString()};
   }
   bSave.onclick=async()=>{
     const data=payload();
@@ -1758,7 +1845,7 @@ main > section, #services > section, #services > .svc-intro{position:relative}
     if(data.gaps&&typeof data.gaps==='object') Object.entries(data.gaps).forEach(([k,v])=>{ if(secs[k]&&typeof v==='number'&&isFinite(v)) gaps[k]=clamp(v,-400,2000); });
     const hts={}; if(data.hts&&typeof data.hts==='object') Object.entries(data.hts).forEach(([k,v])=>{ if(secs[k]&&typeof v==='number'&&isFinite(v)) hts[k]=clamp(Math.round(v),-20000,20000); });
     const groups={}; if(data.groups&&typeof data.groups==='object') Object.entries(data.groups).forEach(([g,ks])=>{ if(/^g-[a-z0-9]+$/.test(g)&&Array.isArray(ks)){ const a=[...new Set(ks.filter(q=>typeof q==='string'&&(els[q]||added[q])))]; if(a.length>1) groups[g]=a; } });
-    S={items,gaps,added,hts,groups,mat:['glass','clear'].includes(data.mat)?data.mat:'matte'}; applyAll();
+    S={items,gaps,added,hts,groups,mat:['glass','clear','optical'].includes(data.mat)?data.mat:'matte',thick:[1.3,1.6].includes(data.thick)?data.thick:1}; applyAll();
   }
 
   /* ---------- start: load saved edits, show the bar to editors ---------- */
