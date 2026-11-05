@@ -609,7 +609,7 @@ function drawHeroText(){
 }
 /* 글자 배치가 바뀌었을 때만 다시 그림 (편집·창 크기·폰트) */
 function heroSig(){ return [...document.querySelectorAll('.hero .lead,.hero .sub')].map(e=>{ const r=e.getBoundingClientRect(); return [Math.round(r.left),Math.round(r.top+scrollY),Math.round(r.width),Math.round(r.height),e.textContent.length,e.style.cssText,e.innerHTML.length].join(','); }).join('|')+innerWidth; }
-setInterval(()=>{ if(matName!=='glass') return; const sg=heroSig(); if(sg!==TXT.sig){ TXT.sig=sg; drawHeroText(); } },400);
+setInterval(()=>{ if(matName==='matte') return; const sg=heroSig(); if(sg!==TXT.sig){ TXT.sig=sg; drawHeroText(); } },400);
 const cssCol=(name)=>{ const v=getComputedStyle(document.documentElement).getPropertyValue(name).trim(); const c=new THREE.Color(); try{ const m=v.match(/rgba?\(([^)]+)\)/); if(m){ const a=m[1].split(',').map(parseFloat); c.setRGB(a[0]/255,a[1]/255,a[2]/255); } else c.setStyle(v); }catch(e){} return c; };
 const TEXTU={uText:{value:txtTex},uTextOn:{value:0},uView:{value:new THREE.Vector2(1,1)},uDpr:{value:1},uScroll:{value:0},uTOrg:{value:new THREE.Vector2()},uTSize:{value:new THREE.Vector2(1,1)},uInk:{value:new THREE.Color()},uDim:{value:new THREE.Color()},uBg:{value:new THREE.Color()}};
 const TEXT_GLSL=`
@@ -690,8 +690,85 @@ const glassMat=new THREE.ShaderMaterial({
       gl_FragColor=vec4(mix(behind(N,ndv),col,w),1.);
     }`
 });
+
+/* ---------- 클리어 글래스: 맑은 광학 유리 (안쪽 면 + 바깥 면 두 겹) ----------
+   안쪽 면: 뒤 배경·글자를 살짝 굴절시켜 그림 → 가운데가 맑게 비침, 안쪽 모서리가 겹쳐 보여 두께감
+   바깥 면: 대부분 투명, 가장자리에서만 반사(프레넬)와 은은한 색 분산, 넓은 소프트박스 하이라이트 */
+const CLEAR_VS=`
+  varying vec3 vN; varying vec3 vV; varying vec3 vObjN; varying vec3 vCol;
+  void main(){
+    vec4 mv=modelViewMatrix*vec4(position,1.);
+    vN=normalize(normalMatrix*normal); vV=normalize(-mv.xyz); vObjN=normal;
+    #ifdef USE_COLOR
+      vCol=color;
+    #else
+      vCol=vec3(1.);
+    #endif
+    gl_Position=projectionMatrix*mv;
+  }`;
+const clearBack=new THREE.ShaderMaterial({
+  uniforms:Object.assign({uTime:{value:0},uLight:{value:0}},TEXTU),
+  vertexColors:true, side:THREE.BackSide, depthWrite:true,
+  vertexShader:CLEAR_VS,
+  fragmentShader:TEXT_GLSL+`
+    uniform float uTime; uniform float uLight;
+    varying vec3 vN; varying vec3 vV; varying vec3 vObjN; varying vec3 vCol;
+    void main(){
+      vec3 N=normalize(vN), V=normalize(vV);
+      float ndv=abs(dot(N,V));
+      vec2 p=cssPos();
+      /* 굴절은 약하게: 가운데는 거의 그대로, 비스듬한 곳만 조금 더 꺾임 */
+      vec2 off=N.xy*vec2(1.,-1.)*(10.+46.*pow(1.-ndv,1.5));
+      vec3 c=vec3(0.);
+      for(int k=0;k<3;k++){
+        vec2 j=k==0?vec2(0.):(k==1?vec2(.7,0.):vec2(0.,.7));
+        float sp=.012+.07*pow(1.-ndv,2.);
+        vec2 mr=txt(p+off*(1.-sp)+j), mg=txt(p+off+j), mb=txt(p+off*(1.+sp)+j);
+        c+=vec3(ontoBg(mr).r,ontoBg(mg).g,ontoBg(mb).b);
+      }
+      c/=3.;
+      if(uTextOn<.5) c=uBg;
+      /* 두께감: 안쪽 면이 비스듬히 보이는 곳에 옅은 선 (흰 배경에선 회색, 검은 배경에선 밝게) */
+      float edge=pow(1.-ndv,2.2);
+      vec3 tint=mix(vec3(.66,.72,.84),vec3(.38,.41,.48),uLight);
+      c=mix(c,tint,edge*mix(.42,.42,uLight));
+      /* 두께가 있는 모서리에 빛이 모임: 가장 비스듬한 곳에 가는 밝은 선 */
+      c+=vec3(smoothstep(.16,.03,ndv))*mix(.35,.25,uLight);
+      c*=mix(1.,vCol.r,.12);
+      gl_FragColor=vec4(c,1.);
+    }`
+});
+const clearFront=new THREE.ShaderMaterial({
+  uniforms:Object.assign({uTime:{value:0},uLight:{value:0}},TEXTU),
+  vertexColors:true, transparent:true, depthWrite:true,
+  vertexShader:CLEAR_VS,
+  fragmentShader:`
+    uniform float uTime; uniform float uLight;
+    varying vec3 vN; varying vec3 vV; varying vec3 vObjN; varying vec3 vCol;
+    /* 넓은 소프트박스: 위쪽 큰 패널 + 왼쪽 세로 패널, 대비를 낮게 */
+    float soft(vec3 d){
+      float top=smoothstep(.12,.7,d.y)*smoothstep(1.05,.55,abs(d.x));
+      float side=smoothstep(.38,.0,abs(d.x+.55))*smoothstep(.95,.15,abs(d.y));
+      return clamp(top*.85+side*.5,0.,1.);
+    }
+    void main(){
+      vec3 N=normalize(vN), V=normalize(vV), I=-V;
+      float ndv=clamp(dot(N,V),0.,1.);
+      float fres=.02+.98*pow(1.-ndv,4.);            /* 정면은 거의 0, 외곽에서 강하게 */
+      float hl=soft(reflect(I,N));
+      /* 색 분산: 굴절이 강한 가장자리에서만, 청록·보라·노랑 */
+      float dAmt=smoothstep(.34,.04,ndv);
+      vec3 disp=.5+.5*cos(6.28318*(ndv*2.2+dot(N.xy,vec2(.35,.5))+vec3(.0,.33,.67)));
+      disp=mix(vec3(1.),disp,.9);
+      vec3 base=mix(vec3(1.),vec3(.36,.39,.46),uLight*(1.-hl)); /* 흰 배경: 하이라이트 아닌 반사는 회색 → 유리 윤곽 */
+      vec3 col=mix(base,disp,dAmt*.65);
+      float a=fres*.72+hl*(.06+fres*.3)+dAmt*.2;
+      gl_FragColor=vec4(col,clamp(a,.0,.78));
+    }`
+});
+const clearIn=new THREE.Mesh(logoGeo,clearBack); clearIn.visible=false; clearIn.renderOrder=-2; logo.add(clearIn);
 let matName='matte', frameNo=0;
-window.__flickMat=function(n){ matName=n==='glass'?'glass':'matte'; if(matName==='glass'){ try{ drawHeroText(); TXT.sig=heroSig(); }catch(e){ TXT.ok=false; } } logo.material=matName==='glass'?glassMat:matte; };
+window.__flickMat=function(n){ matName=(n==='glass'||n==='clear')?n:'matte'; if(matName!=='matte'){ try{ drawHeroText(); TXT.sig=heroSig(); }catch(e){ TXT.ok=false; } } logo.material=matName==='glass'?glassMat:matName==='clear'?clearFront:matte; clearIn.visible=matName==='clear'; };
 if(window.__flickMatWant) window.__flickMat(window.__flickMatWant);
 edgeMat.visible=false; inside.visible=false; rim.visible=false;
 spin.add(logo);
@@ -874,7 +951,8 @@ function frameBody(){
   halo.material.opacity*=1-lightAmt;
   if(logo.material&&logo.material.color) logo.material.color.setScalar(L(1,.8,lightAmt));
   glassMat.uniforms.uTime.value=time; glassMat.uniforms.uLight.value=lightAmt;
-  { const de=document.documentElement, use=matName==='glass'&&TXT.ok&&!de.classList.contains('ed-on');
+  clearBack.uniforms.uLight.value=clearFront.uniforms.uLight.value=lightAmt;
+  { const de=document.documentElement, use=matName!=='matte'&&TXT.ok&&!de.classList.contains('ed-on');
     /* 첫 화면이 보이는 동안만 3D를 글자 위로: 유리가 덮는 곳만 휘어진 글자, 나머지는 원래 선명한 글자 */
     const hb=heroEl?heroEl.getBoundingClientRect().bottom:0;
     de.classList.toggle('gl-text',use); de.classList.toggle('gl-over',use&&hb>0); TEXTU.uTextOn.value=use?1:0; textQuad.visible=false;
@@ -1221,8 +1299,9 @@ main > section, #services > section, #services > .svc-intro{position:relative}
   const bHelp=$('ed-helpbtn'); let helpOpen=false;
   /* 로고 재질: 매트 ↔ 글래스 (저장하면 모두에게 적용) */
   const bMat=$('ed-mat');
-  function applyMat(){ const m=S.mat==='glass'?'glass':'matte'; window.__flickMatWant=m; if(window.__flickMat) window.__flickMat(m); bMat.textContent='재질: '+(m==='glass'?'글래스':'매트'); }
-  bMat.onclick=()=>{ snapshot(); S.mat=S.mat==='glass'?'matte':'glass'; applyMat(); markDirty(); say('로고 재질을 '+(S.mat==='glass'?'글래스':'매트')+'로 바꿨어요 · 저장하면 모두에게 적용돼요'); };
+  const MATS=['matte','glass','clear'], MATN={matte:'매트',glass:'글래스',clear:'클리어 글래스'};
+  function applyMat(){ const m=MATS.includes(S.mat)?S.mat:'matte'; window.__flickMatWant=m; if(window.__flickMat) window.__flickMat(m); bMat.textContent='재질: '+MATN[m]; }
+  bMat.onclick=()=>{ snapshot(); const i=MATS.indexOf(MATS.includes(S.mat)?S.mat:'matte'); S.mat=MATS[(i+1)%3]; applyMat(); markDirty(); say('로고 재질: '+MATN[S.mat]+' · 저장하면 모두에게 적용돼요'); };
   bHelp.onclick=()=>{ helpOpen=!helpOpen; help.hidden=!helpOpen; bHelp.setAttribute('aria-expanded',helpOpen); bHelp.textContent=helpOpen?'도움말 닫기':'도움말'; };
 
   const gapEls={};
@@ -1627,7 +1706,7 @@ main > section, #services > section, #services > .svc-intro{position:relative}
     const gaps={}; Object.entries(S.gaps).forEach(([k,v])=>{ if(v) gaps[k]=v; });
     const hts={}; Object.entries(S.hts||{}).forEach(([k,v])=>{ if(v) hts[k]=v; });
     const groups={}; Object.entries(S.groups||{}).forEach(([g,ks])=>{ const a=ks.filter(q=>els[q]); if(a.length>1) groups[g]=a; });
-    return {v:5,mat:S.mat==='glass'?'glass':'matte',items,gaps,hts,groups,added:clone(S.added),viewport:innerWidth+'x'+innerHeight,savedAt:new Date().toISOString()};
+    return {v:5,mat:['glass','clear'].includes(S.mat)?S.mat:'matte',items,gaps,hts,groups,added:clone(S.added),viewport:innerWidth+'x'+innerHeight,savedAt:new Date().toISOString()};
   }
   bSave.onclick=async()=>{
     const data=payload();
@@ -1679,7 +1758,7 @@ main > section, #services > section, #services > .svc-intro{position:relative}
     if(data.gaps&&typeof data.gaps==='object') Object.entries(data.gaps).forEach(([k,v])=>{ if(secs[k]&&typeof v==='number'&&isFinite(v)) gaps[k]=clamp(v,-400,2000); });
     const hts={}; if(data.hts&&typeof data.hts==='object') Object.entries(data.hts).forEach(([k,v])=>{ if(secs[k]&&typeof v==='number'&&isFinite(v)) hts[k]=clamp(Math.round(v),-20000,20000); });
     const groups={}; if(data.groups&&typeof data.groups==='object') Object.entries(data.groups).forEach(([g,ks])=>{ if(/^g-[a-z0-9]+$/.test(g)&&Array.isArray(ks)){ const a=[...new Set(ks.filter(q=>typeof q==='string'&&(els[q]||added[q])))]; if(a.length>1) groups[g]=a; } });
-    S={items,gaps,added,hts,groups,mat:data.mat==='glass'?'glass':'matte'}; applyAll();
+    S={items,gaps,added,hts,groups,mat:['glass','clear'].includes(data.mat)?data.mat:'matte'}; applyAll();
   }
 
   /* ---------- start: load saved edits, show the bar to editors ---------- */
