@@ -229,7 +229,8 @@ html.mq-520 :where(#flick-root) .cards{grid-template-columns:minmax(0,1fr)}
 :where(#flick-root) .grow p{margin:30px auto 0;max-width:36em;font-size:clamp(15px,calc(var(--vw) * 1.4),18px);line-height:1.9}
 :where(#flick-root) .grow p .w{display:inline-block;opacity:.08;filter:blur(10px);transform:translateY(4px);transition:opacity .7s ease,filter .7s ease,transform .7s cubic-bezier(.2,.7,.2,1)}
 :where(#flick-root) .grow p .w.lit{opacity:1;filter:none;transform:none}
-:where(#flick-root) .grow p .tag{display:inline-block;margin-top:10px;padding:2px 8px;font-weight:700;background:var(--blue);color:#fff;transition:opacity .4s,transform .5s}
+:where(#flick-root) .grow p.grow-tag{margin-top:12px}
+:where(#flick-root) .grow p .tag{display:inline-block;padding:2px 8px;font-weight:700;background:var(--blue);color:#fff;transition:opacity .4s,transform .5s}
 :where(#flick-root) .grow p .tag{transition:opacity .7s,filter .7s,transform .7s}
 :where(#flick-root) .grow p .tag:not(.lit){opacity:.08;filter:blur(10px);transform:translateY(6px)}
 
@@ -252,6 +253,17 @@ html.mq-520 :where(#flick-root) .cards{grid-template-columns:minmax(0,1fr)}
 :where(#flick-root) .step h3 span{color:var(--blue)}
 :where(#flick-root) .step h3 small{font-family:var(--f-display);font-weight:600;font-size:.737em;margin-left:8px;color:var(--ink)}
 :where(#flick-root) .step p{margin:.5em 0 0;font-size:.9375em;color:var(--dim);line-height:1.7}
+/* 데스크톱: 미션 단계 카드를 제목 크기에 맞게 두 배로 */
+html.bp-d :where(#flick-root) .mission .col{margin-right:calc(620px - var(--vw) * 40)}   /* 왼쪽 시작선은 그대로, 오른쪽만 화면 90%까지 넓힘 */
+html.bp-d :where(#flick-root) .steps{margin-top:60px;gap:36px}
+html.bp-d :where(#flick-root) .steps::before,html.bp-d :where(#flick-root) .steps .fill{left:47px;top:48px}
+html.bp-d :where(#flick-root) .steps::before{bottom:48px}
+html.bp-d :where(#flick-root) .step{grid-template-columns:96px minmax(0,1fr);gap:36px}
+html.bp-d :where(#flick-root) .step:not(.on){transform:translateX(36px)}
+html.bp-d :where(#flick-root) .step .dot{width:96px;height:96px;font-size:24px}
+html.bp-d :where(#flick-root) .step.on .dot{box-shadow:0 0 44px rgba(61,155,255,.45)}
+html.bp-d :where(#flick-root) .step .box{font-size:32px;padding:36px 40px;border-radius:32px}
+html.bp-d :where(#flick-root) .step h3 small{margin-left:16px}
 html.mq-860 :where(#flick-root) .mission .inner{grid-template-columns:minmax(0,1fr)}html.mq-860 :where(#flick-root) .mission .col{grid-column:1}html.mq-860 :where(#flick-root) .mission-stage{align-content:end;padding-bottom:calc(var(--vh) * 10)}
 
 /* contact */
@@ -467,7 +479,8 @@ html.mq-860 :where(#flick-root) .mission .inner{grid-template-columns:minmax(0,1
   <section class="grow" id="grow" data-form="glassBack" data-bg="light" aria-labelledby="grow-title">
     <div class="grow-stage wrap"><div class="inner">
       <h2 id="grow-title">브랜드와 <span class="hl">함께 성장하는</span> 더플릭</h2>
-      <p data-words>모든 프로젝트는 단순히 콘텐츠 제작을 넘어, 브랜드의 장기적인 가치 성장을 목표로 합니다. 우리는 소통과 책임감을 바탕으로 팀원, 고객, 브랜드 모두의 성장을 추구하며, 더 나은 브랜드 경험을 통해 공공과 기업이 함께 빛날 수 있는 미래를 설계합니다.<br><span class="tag" id="grow-tag">브랜드 가치와 크리에이티브, 더플릭의 핵심입니다.</span></p>
+      <p data-words>모든 프로젝트는 단순히 콘텐츠 제작을 넘어, 브랜드의 장기적인 가치 성장을 목표로 합니다. 우리는 소통과 책임감을 바탕으로 팀원, 고객, 브랜드 모두의 성장을 추구하며, 더 나은 브랜드 경험을 통해 공공과 기업이 함께 빛날 수 있는 미래를 설계합니다.</p>
+      <p class="grow-tag"><span class="tag" id="grow-tag">브랜드 가치와 크리에이티브, 더플릭의 핵심입니다.</span></p>
     </div></div>
   </section>
 
@@ -487,13 +500,13 @@ html.mq-860 :where(#flick-root) .mission .inner{grid-template-columns:minmax(0,1
 
 <script>
 (function(){
-  const p=document.querySelector('[data-words]'); const tag=p.querySelector('.tag'); const br=p.querySelector('br');
+  const p=document.querySelector('[data-words]');
   const text=[...p.childNodes].filter(n=>n.nodeType===3).map(n=>n.textContent).join(' ');
   p.textContent='';
   /* 단어들을 한 묶음(.words)으로: 편집 모드에서 문단 전체를 한 번에 고칠 수 있게 */
   const box=document.createElement('span'); box.className='words';
   text.split(/\s+/).filter(Boolean).forEach((w,i,arr)=>{ const s=document.createElement('span'); s.className='w'; s.textContent=w; box.append(s); if(i<arr.length-1) box.append(' '); });
-  p.append(box, br, tag);
+  p.append(box);
 })();
 </script>
 
@@ -505,7 +518,7 @@ html.mq-860 :where(#flick-root) .mission .inner{grid-template-columns:minmax(0,1
   const cl=x=>Math.min(1,Math.max(0,x)), sm=(a,b,x)=>{ const t=cl((x-a)/(b-a)); return t*t*(3-2*t); };
   let ready=false;
   function measure(){
-    cards.forEach(c=>{ c.style.translate=''; c.style.setProperty('--c','0'); c.style.removeProperty('--artH'); c.style.removeProperty('--ulH'); });
+    cards.forEach(c=>{ c.style.translate=''; c.style.rotate=''; c.style.setProperty('--c','0'); c.style.removeProperty('--artH'); c.style.removeProperty('--ulH'); });
     ol.style.minHeight='';
     if(de.classList.contains('ed-on')){ ready=false; return; }
     /* 목록 높이는 가장 긴 카드에 맞춤 → 네 카드 길이가 같음 */
@@ -515,6 +528,20 @@ html.mq-860 :where(#flick-root) .mission .inner{grid-template-columns:minmax(0,1
     ol.style.minHeight=ol.offsetHeight+'px';   /* 접혀도 섹션 높이는 그대로 (아래 내용과 3D 로고 위치가 밀리지 않게) */
     ready=true; update();
   }
+  /* 쫄깃하게: 카드마다 스프링으로 목표 위치를 따라감 (늦게 따라오다 제자리에서 살짝 튕기며 멈춤) */
+  const SP=[]; let spOn=false, spT=0;
+  function kick(){ if(spOn) return; spOn=true; spT=performance.now(); requestAnimationFrame(spring); }
+  function spring(now){
+    const dt=Math.min(.033,(now-spT)/1000)||.016; spT=now; let moving=false;
+    cards.forEach((c,i)=>{ const s=SP[i]; if(!s) return;
+      const K=140-i*12, D=7.5;                       /* 오른쪽 카드일수록 조금 더 느슨하게 */
+      s.v+=(K*(s.t-s.p)-D*s.v)*dt; s.p+=s.v*dt;
+      if(Math.abs(s.t-s.p)>.3||Math.abs(s.v)>.5) moving=true; else { s.p=s.t; s.v=0; }
+      const rot=Math.max(-2.5,Math.min(2.5,s.v*.004));
+      c.style.translate=Math.abs(s.p)>.3?'0 '+s.p.toFixed(1)+'px':'';
+      c.style.rotate=Math.abs(rot)>.02?rot.toFixed(2)+'deg':''; });
+    if(moving&&window.__flickBP==='d') requestAnimationFrame(spring); else spOn=false;
+  }
   function update(){
     if(!ready) return; const vh=innerHeight;
     if(window.__flickBP==='d'){
@@ -523,8 +550,8 @@ html.mq-860 :where(#flick-root) .mission .inner{grid-template-columns:minmax(0,1
       cards.forEach((c,i)=>c.style.setProperty('--c',sm(.42+i*.06,.78+i*.06,p).toFixed(4)));
       /* 들어올 때: 카드가 제목보다 조금씩 늦게 딸려 올라옴 (왼쪽부터 차례로, 화면에 고정되는 순간 제자리) */
       const lag=Math.min(Math.max(r.top,0),vh);
-      cards.forEach((c,i)=>{ const e=lag/vh, off=lag*(.22+i*.07)*(1-.35*e); c.style.translate=off>.5?'0 '+off.toFixed(1)+'px':''; });
-      return;
+      cards.forEach((c,i)=>{ const e=lag/vh; SP[i]=SP[i]||{p:0,v:0,t:0}; SP[i].t=lag*(.3+i*.09)*(1-.3*e); });
+      kick(); return;
     }
     cards.forEach((c,i)=>{ const top=c.getBoundingClientRect().top;
       const t=(vh*.34-top)/(vh*.3);                       /* 카드 윗변이 화면 34% → 4% 지점으로 올라가는 동안 */
@@ -1269,9 +1296,9 @@ const F={
   marketing:{side:1, y:0,   scale:1.37,  tilt:.28, yaw:-.7,  R:3, mat:0, tint:[.94,.95,1], halo:C(0x9fb0ff), haloA:.08, light:C(0xffffff), li:0},
   design:   {side:-1,y:0,   scale:1.37,  tilt:.28, yaw:.7,   R:4, mat:0, tint:[.94,.95,1],   halo:C(0x9fb0ff), haloA:.08, light:C(0xffffff), li:0},
   glassTop: {side:0, y:1.6, scale:.66, dEdge:.10, dY:.22, dScale:.95, tilt:.34, yaw:-.45, R:5, mat:0, tint:[.94,.95,1],  halo:C(0x9fb0ff), haloA:.08,  light:C(0xffffff), li:0},
-  glassBack:{side:0, y:0,   scale:1.35,tilt:.4,  yaw:-.3,  R:6, mat:0, tint:[.94,.95,1],  halo:C(0x9fb0ff), haloA:.08, light:C(0xffffff), li:0},
-  glassSide:{side:-1,y:0,   scale:1.0, tilt:.36, yaw:.6,   R:7, mat:0, tint:[.94,.95,1],  halo:C(0x9fb0ff), haloA:.08,  light:C(0xffffff), li:0},
-  glassEnd: {side:0, y:.7,  scale:.9,  tilt:.34, yaw:-.45, R:8, idle:1, mat:0, tint:[.94,.95,1], halo:C(0x9fb0ff), haloA:.08, light:C(0xffffff), li:0},
+  glassBack:{side:0, y:0,   scale:1.35,tilt:.4,  yaw:-.3,  R:5, mat:0, tint:[.94,.95,1],  halo:C(0x9fb0ff), haloA:.08, light:C(0xffffff), li:0},
+  glassSide:{side:-1,y:0,   scale:1.0, tilt:.36, yaw:.6,   R:6, mat:0, tint:[.94,.95,1],  halo:C(0x9fb0ff), haloA:.08,  light:C(0xffffff), li:0},
+  glassEnd: {side:0, y:.7,  scale:.9,  tilt:.34, yaw:-.45, R:7, idle:1, mat:0, tint:[.94,.95,1], halo:C(0x9fb0ff), haloA:.08, light:C(0xffffff), li:0},
 };
 
 let markers=[];
@@ -1646,8 +1673,8 @@ frame();
     dock.classList.toggle('show', f.top<mid && l.bottom>mid*.9);
     if(best>=0) setActive(best);
 
-    const words=grow.querySelectorAll('.w'); const gp=prog(grow); const lit=Math.round(Math.min(1,gp/.75)*words.length);
-    words.forEach((w,k)=>w.classList.toggle('lit',k<lit)); tag.classList.toggle('lit',gp>.8);
+    const words=grow.querySelectorAll('.w'); const gp=prog(grow); const lit=Math.round(Math.min(1,Math.max(0,(gp-.16)/.62))*words.length);   /* 글이 위로 올라간 만큼 조금 늦게 시작 */
+    words.forEach((w,k)=>w.classList.toggle('lit',k<lit)); tag.classList.toggle('lit',gp>.84);
 
     const mp=prog(mission); const on=Math.min(steps.length,1+Math.floor(mp*steps.length*1.15));
     steps.forEach((s,k)=>s.classList.toggle('on',k<on));
@@ -1885,7 +1912,7 @@ html.ed-on :where(#flick-root) .ed-gap{display:block}
 <div class="ed-guide v" id="ed-gv" aria-hidden="true"></div>
 <div class="ed-guide hz" id="ed-gh" aria-hidden="true"></div>
 
-<script type="application/json" id="flick-baked">{"v":6,"mat":"optical","thick":1,"bp":{"d":{"added":{},"cg":{},"gaps":{},"groups":{"g-mw38n2u6":[".svc li#3",".svc li#4",".svc li#5",".svc li#6"],"g-svc2":[".svc h3#2",".svc li#7",".svc li#8",".svc li#9",".svc li#10"],"g-svc3":[".svc h3#3",".svc li#11",".svc li#12",".svc li#13",".svc li#14"]},"hts":{"sec0":-126,"sec1":31,"sec6":187},"items":{".card .art#0":{"hide":true},".card .art#1":{"hide":true},".card .art#2":{"hide":true},".card .art#3":{"hide":true},".eyebrow#0":{"fs":10.846,"hide":true,"lh":1.2,"ls":0.055,"t":{"0":""},"x":-764},".eyebrow#2":{"fs":16.284,"ls":0,"w":1463,"x":-1239,"y":-284},".grow h2#0":{"fs":1.845,"h":{"0":[["브랜드와\n",0],["함께 성장하는",0,1],[" 더플릭",0]]},"ls":-0.025,"t":{"0":"브랜드와\n함께 성장하는 더플릭"},"ta":"left","w":2400,"x":-570,"y":-259},".grow p#0":{"fs":1.912,"h":{"0":[["모든",600],[" ",0],["프로젝트는",600],[" ",0],["단순히",600],[" ",0],["콘텐츠",600],[" ",0],["제작을",600],[" ",0],["넘어,",600],[" ",0],["브랜드의",600],[" ",0],["장기적인",600],[" ",0],["가치",600],[" ",0],["성장을",600],[" ",0],["목표로",600],[" ",0],["합니다.\n우리는",600],[" ",0],["소통과",600],[" ",0],["책임감을",600],[" ",0],["바탕으로",600],[" ",0],["팀원,",600],[" ",0],["고객,",600],[" ",0],["브랜드",600],[" ",0],["모두의",600],[" ",0],["성장을",600],[" ",0],["추구하며,\n더",600],[" ",0],["나은",600],[" ",0],["브랜드",600],[" ",0],["경험을",600],[" ",0],["통해",600],[" ",0],["공공과",600],[" ",0],["기업이",600],[" ",0],["함께",600],[" ",0],["빛날",600],[" ",0],["수",600],[" ",0],["있는",600],[" ",0],["미래를",600],[" ",0],["설계합니다.",600]]},"lh":2.1,"ls":-0.025,"t":{"0":"모든 프로젝트는 단순히 콘텐츠 제작을 넘어, 브랜드의 장기적인 가치 성장을 목표로 합니다.\n우리는 소통과 책임감을 바탕으로 팀원, 고객, 브랜드 모두의 성장을 추구하며,\n더 나은 브랜드 경험을 통해 공공과 기업이 함께 빛날 수 있는 미래를 설계합니다."},"ta":"center","w":1397,"x":-68,"y":366},".hero .sub#0":{"fs":1.856,"fw":500,"ls":-0.025,"t":{"0":"2021년 창립 이래, 공공기관, 선거컨설팅, 커머셜 분야에서\n콘텐츠 혁신과 브랜드 경험의 새로운 패러다임을 만들어 오고 있습니다."},"w":957,"x":-19,"y":164},".hero h1#0":{"fs":2.337,"h":{"0":[["주식회사 더플릭",700],["은\n고객의 가치를 창의적으로 재해석 하는\n브랜딩 에이전시 입니다.",600]]},"lh":1.35,"ls":-0.025,"w":1716,"x":-398,"y":121},".step .box#0":{"fs":1.274},".step .box#1":{"fs":1.274},".step .box#2":{"fs":1.2},".step .dot#0":{"fs":1.274},".step .dot#1":{"fs":1.274},".step .dot#2":{"fs":1.274},".step h3#2":{"fs":0.942},".step p#2":{"fs":0.942},".svc .no#0":{"hide":true,"x":-615},".svc .no#1":{"hide":true},".svc .no#2":{"hide":true},".svc .no#3":{"hide":true},".svc h3#0":{"fs":2.789,"ls":-0.025,"w":549,"x":-613,"y":-110},".svc h3#1":{"fs":2.789,"ls":-0.025,"ta":"right","w":549,"x":504,"y":-97},".svc h3#2":{"fs":2.789,"ls":-0.025,"w":549,"x":-613,"y":-97},".svc h3#3":{"fs":2.789,"ls":-0.025,"ta":"right","w":549,"x":504,"y":-97},".svc li#0":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"x":-613,"y":-49},".svc li#1":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"x":-613,"y":-12},".svc li#10":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"x":-613,"y":72},".svc li#11":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"ta":"right","x":613,"y":-36},".svc li#12":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"ta":"right","x":613,"y":1},".svc li#13":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"ta":"right","x":613,"y":36},".svc li#14":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"ta":"right","x":613,"y":72},".svc li#2":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"x":-613,"y":23},".svc li#3":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"ta":"right","x":613,"y":-36},".svc li#4":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"ta":"right","x":613,"y":1},".svc li#5":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"ta":"right","x":613,"y":36},".svc li#6":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"ta":"right","x":613,"y":72},".svc li#7":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"x":-613,"y":-36},".svc li#8":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"x":-613,"y":1},".svc li#9":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"x":-613,"y":36},".eyebrow#1":{"fs":16.308,"ls":0,"t":{"0":""},"w":1367}},"photo":{}}}}</script>
+<script type="application/json" id="flick-baked">{"v":6,"mat":"optical","thick":1,"bp":{"d":{"added":{},"cg":{},"gaps":{},"groups":{"g-mw38n2u6":[".svc li#3",".svc li#4",".svc li#5",".svc li#6"],"g-svc3":[".svc h3#3",".svc li#11",".svc li#12",".svc li#13",".svc li#14"]},"hts":{"sec0":-126,"sec1":31,"sec6":187},"items":{".card .art#0":{"hide":true},".card .art#1":{"hide":true},".card .art#2":{"hide":true},".card .art#3":{"hide":true},".eyebrow#0":{"fs":10.846,"hide":true,"lh":1.2,"ls":0.055,"t":{"0":""},"x":-764},".eyebrow#1":{"fs":20.062,"ls":0,"t":{"0":""},"w":2080,"y":71},".eyebrow#2":{"fs":16.284,"ls":0,"w":1463,"x":-1239,"y":-284},".grow h2#0":{"fs":1.845,"h":{"0":[["브랜드와\n",0],["함께 성장하는",0,1],[" 더플릭",0]]},"ls":-0.025,"t":{"0":"브랜드와\n함께 성장하는 더플릭"},"ta":"left","w":931,"x":-751,"y":123},".grow p#0":{"fs":1.667,"h":{"0":[["모든",600],[" ",0],["프로젝트는",600],[" ",0],["단순히",600],[" ",0],["콘텐츠",600],[" ",0],["제작을",600],[" ",0],["넘어,\n",600],[" ",0],["브랜드의",600],[" ",0],["장기적인",600],[" ",0],["가치",600],[" ",0],["성장을",600],[" ",0],["목표로",600],[" ",0],["합니다.",600],["\n",0],["우리는",600],[" ",0],["소통과",600],[" ",0],["책임감을",600],[" ",0],["바탕으로",600],[" ",0],["팀원,",600],[" ",0],["고객,",600],[" ",0],["브랜드",600],[" ",0],["모두의",600],[" ",0],["성장을",600],[" ",0],["추구하며,",600],["\n",0],["더",600],[" ",0],["나은",600],[" ",0],["브랜드",600],[" ",0],["경험을",600],[" ",0],["통해",600],[" ",0],["공공과",600],[" ",0],["기업이",600],[" ",0],["함께",600],[" ",0],["빛날",600],[" ",0],["수",600],[" ",0],["있는",600],[" ",0],["미래를",600],[" ",0],["설계합니다.",600]]},"lh":2.1,"ls":-0.025,"t":{"0":"모든 프로젝트는 단순히 콘텐츠 제작을 넘어,\n브랜드의 장기적인 가치 성장을 목표로 합니다. 우리는 소통과 책임감을 바탕으로 팀원, 고객, 브랜드 모두의 성장을 추구하며, 더 나은 브랜드 경험을 통해 공공과 기업이 함께 빛날 수 있는 미래를 설계합니다."},"ta":"left","w":1397,"x":1081,"y":-146},".hero .sub#0":{"fs":1.856,"fw":500,"ls":-0.025,"t":{"0":"2021년 창립 이래, 공공기관, 선거컨설팅, 커머셜 분야에서\n콘텐츠 혁신과 브랜드 경험의 새로운 패러다임을 만들어 오고 있습니다."},"w":957,"x":-19,"y":164},".hero h1#0":{"fs":2.337,"h":{"0":[["주식회사 더플릭",700],["은\n고객의 가치를 창의적으로 재해석 하는\n브랜딩 에이전시 입니다.",600]]},"lh":1.35,"ls":-0.025,"w":1716,"x":-398,"y":121},".step .box#0":{"fs":1.274},".step .box#1":{"fs":1.274},".step .box#2":{"fs":1.2},".step .dot#0":{"fs":1.274},".step .dot#1":{"fs":1.274},".step .dot#2":{"fs":1.274},".step h3#2":{"fs":0.942},".step p#2":{"fs":0.942},".svc .no#0":{"hide":true,"x":-615},".svc .no#1":{"hide":true},".svc .no#2":{"hide":true},".svc .no#3":{"hide":true},".svc h3#0":{"fs":2.789,"ls":-0.025,"w":549,"x":-613,"y":-110},".svc h3#1":{"fs":2.789,"ls":-0.025,"ta":"right","w":549,"x":504,"y":-97},".svc h3#2":{"fs":2.789,"ls":-0.025,"w":578,"x":-613,"y":-97},".svc h3#3":{"fs":2.789,"ls":-0.025,"ta":"right","w":549,"x":504,"y":-97},".svc li#0":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"x":-613,"y":-49},".svc li#1":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"x":-613,"y":-12},".svc li#10":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"x":-613,"y":72},".svc li#11":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"ta":"right","x":613,"y":-36},".svc li#12":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"ta":"right","x":613,"y":1},".svc li#13":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"ta":"right","x":613,"y":36},".svc li#14":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"ta":"right","x":613,"y":72},".svc li#2":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"x":-613,"y":23},".svc li#3":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"ta":"right","x":613,"y":-36},".svc li#4":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"ta":"right","x":613,"y":1},".svc li#5":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"ta":"right","x":613,"y":36},".svc li#6":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"ta":"right","x":613,"y":72},".svc li#7":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"x":-613,"y":-36},".svc li#8":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"x":-613,"y":1},".svc li#9":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"x":-613,"y":36},".grow p#1":{"fs":1.667,"ls":-0.025,"ta":"left","w":1397,"x":1081,"y":-146}},"photo":{}},"m":{"added":{},"cg":{},"gaps":{},"groups":{},"hts":{},"items":{".card .art#0":{"hide":true},".card .art#1":{"hide":true},".card .art#2":{"hide":true},".card .art#3":{"hide":true},".eyebrow#0":{"hide":true,"t":{"0":""}},".grow p#0":{"h":{"0":[["모든",600],[" ",0],["프로젝트는",600],[" ",0],["단순히",600],[" ",0],["콘텐츠",600],[" ",0],["제작을",600],[" ",0],["넘어,",600],[" ",0],["브랜드의",600],[" ",0],["장기적인",600],[" ",0],["가치",600],[" ",0],["성장을",600],[" ",0],["목표로",600],[" ",0],["합니다.\n우리는",600],[" ",0],["소통과",600],[" ",0],["책임감을",600],[" ",0],["바탕으로",600],[" ",0],["팀원,",600],[" ",0],["고객,",600],[" ",0],["브랜드",600],[" ",0],["모두의",600],[" ",0],["성장을",600],[" ",0],["추구하며,\n더",600],[" ",0],["나은",600],[" ",0],["브랜드",600],[" ",0],["경험을",600],[" ",0],["통해",600],[" ",0],["공공과",600],[" ",0],["기업이",600],[" ",0],["함께",600],[" ",0],["빛날",600],[" ",0],["수",600],[" ",0],["있는",600],[" ",0],["미래를",600],[" ",0],["설계합니다.",600]]},"t":{"0":"모든 프로젝트는 단순히 콘텐츠 제작을 넘어, 브랜드의 장기적인 가치 성장을 목표로 합니다.\n우리는 소통과 책임감을 바탕으로 팀원, 고객, 브랜드 모두의 성장을 추구하며,\n더 나은 브랜드 경험을 통해 공공과 기업이 함께 빛날 수 있는 미래를 설계합니다."}},".hero .sub#0":{"fw":500,"t":{"0":"2021년 창립 이래, 공공기관, 선거컨설팅, 커머셜 분야에서\n콘텐츠 혁신과 브랜드 경험의 새로운 패러다임을 만들어 오고 있습니다."}},".hero h1#0":{"h":{"0":[["주식회사 더플릭",700],["은\n고객의 가치를 창의적으로 재해석 하는\n브랜딩 에이전시 입니다.",600]]}},".svc .no#0":{"hide":true},".svc .no#1":{"hide":true},".svc .no#2":{"hide":true},".svc .no#3":{"hide":true},".svc li#0":{"fw":500},".svc li#1":{"fw":500},".svc li#10":{"fw":500},".svc li#11":{"fw":500},".svc li#12":{"fw":500},".svc li#13":{"fw":500},".svc li#14":{"fw":500},".svc li#2":{"fw":500},".svc li#3":{"fw":500},".svc li#4":{"fw":500},".svc li#5":{"fw":500},".svc li#6":{"fw":500},".svc li#7":{"fw":500},".svc li#8":{"fw":500},".svc li#9":{"fw":500}},"photo":{}},"t":{"added":{},"cg":{},"gaps":{},"groups":{},"hts":{},"items":{".card .art#0":{"hide":true},".card .art#1":{"hide":true},".card .art#2":{"hide":true},".card .art#3":{"hide":true},".eyebrow#0":{"hide":true,"t":{"0":""}},".grow p#0":{"h":{"0":[["모든",600],[" ",0],["프로젝트는",600],[" ",0],["단순히",600],[" ",0],["콘텐츠",600],[" ",0],["제작을",600],[" ",0],["넘어,",600],[" ",0],["브랜드의",600],[" ",0],["장기적인",600],[" ",0],["가치",600],[" ",0],["성장을",600],[" ",0],["목표로",600],[" ",0],["합니다.\n우리는",600],[" ",0],["소통과",600],[" ",0],["책임감을",600],[" ",0],["바탕으로",600],[" ",0],["팀원,",600],[" ",0],["고객,",600],[" ",0],["브랜드",600],[" ",0],["모두의",600],[" ",0],["성장을",600],[" ",0],["추구하며,\n더",600],[" ",0],["나은",600],[" ",0],["브랜드",600],[" ",0],["경험을",600],[" ",0],["통해",600],[" ",0],["공공과",600],[" ",0],["기업이",600],[" ",0],["함께",600],[" ",0],["빛날",600],[" ",0],["수",600],[" ",0],["있는",600],[" ",0],["미래를",600],[" ",0],["설계합니다.",600]]},"t":{"0":"모든 프로젝트는 단순히 콘텐츠 제작을 넘어, 브랜드의 장기적인 가치 성장을 목표로 합니다.\n우리는 소통과 책임감을 바탕으로 팀원, 고객, 브랜드 모두의 성장을 추구하며,\n더 나은 브랜드 경험을 통해 공공과 기업이 함께 빛날 수 있는 미래를 설계합니다."}},".hero .sub#0":{"fw":500,"t":{"0":"2021년 창립 이래, 공공기관, 선거컨설팅, 커머셜 분야에서\n콘텐츠 혁신과 브랜드 경험의 새로운 패러다임을 만들어 오고 있습니다."}},".hero h1#0":{"h":{"0":[["주식회사 더플릭",700],["은\n고객의 가치를 창의적으로 재해석 하는\n브랜딩 에이전시 입니다.",600]]}},".svc .no#0":{"hide":true},".svc .no#1":{"hide":true},".svc .no#2":{"hide":true},".svc .no#3":{"hide":true},".svc li#0":{"fw":500},".svc li#1":{"fw":500},".svc li#10":{"fw":500},".svc li#11":{"fw":500},".svc li#12":{"fw":500},".svc li#13":{"fw":500},".svc li#14":{"fw":500},".svc li#2":{"fw":500},".svc li#3":{"fw":500},".svc li#4":{"fw":500},".svc li#5":{"fw":500},".svc li#6":{"fw":500},".svc li#7":{"fw":500},".svc li#8":{"fw":500},".svc li#9":{"fw":500}},"photo":{}}}}</script>
 <script>
 (function(){
   /* ---------- what can be edited ---------- */
