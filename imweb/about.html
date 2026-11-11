@@ -23,7 +23,6 @@ html body #doz_header_wrap{position:relative;z-index:1000}html body #doz_footer_
 /* 아임웹 상단 메뉴는 배경이 투명하고 글씨·로고가 흰색: 이 페이지의 흰 배경 구간에서는 검은색으로 (하위 메뉴는 그대로) */
 html.light #doz_header_wrap :is(a,span,i,svg):not(.dropdown-menu *):not(.dropdown-menu){color:#0c0d11!important;fill:currentColor}
 html.light #doz_header_wrap img:not(.dropdown-menu *){filter:brightness(0)!important}
-#doz_header_wrap :is(a,span,i,img){transition:color .4s,filter .4s}
 /* 이 페이지 자체 상단 메뉴는 아임웹에서는 쓰지 않음 */
 #flick-root .top{display:none!important}
 /* 레이아웃은 그대로 두고 페이지를 상단 메뉴 높이만큼 끌어올림: 메뉴가 첫 화면 맨 위(비어 있는 부분)에 겹쳐짐 → 모든 위치·타이밍이 단독 페이지와 동일 */
