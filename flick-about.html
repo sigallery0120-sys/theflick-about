@@ -10,7 +10,7 @@ main{zoom:var(--k,1);--vh:var(--vh-in,1vh);--vw:var(--vw-in,1vw)}
 
 /* Layout: one fixed WebGL stage (the glass stair logo in space) behind a scrolling column; service chapters alternate sides while the logo crosses over and fills with a different material for each service. */
 :root{
-  --bg:#0a0a0a;
+  --bg:#000000;
   --ink:#f1f3f8;
   --dim:#8f96ab;
   --faint:rgba(241,243,248,.12);
@@ -30,7 +30,7 @@ main{zoom:var(--k,1);--vh:var(--vh-in,1vh);--vw:var(--vw-in,1vw)}
   transition:--bg .8s ease,--ink .8s ease,--dim .8s ease,--faint .8s ease,--panel .8s ease,--glow .8s ease,--card-a .8s ease,--art .8s ease,--stroke .8s ease;
 }
 /* 섹션마다 흰 배경 / 검은 배경으로 반전: 색이 스르르 바뀌도록 색 토큰을 등록 */
-@property --bg{syntax:'<color>';inherits:true;initial-value:#0a0a0a}
+@property --bg{syntax:'<color>';inherits:true;initial-value:#000000}
 @property --ink{syntax:'<color>';inherits:true;initial-value:#f1f3f8}
 @property --dim{syntax:'<color>';inherits:true;initial-value:#8f96ab}
 @property --faint{syntax:'<color>';inherits:true;initial-value:rgba(241,243,248,.12)}
