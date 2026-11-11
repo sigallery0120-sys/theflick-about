@@ -128,7 +128,7 @@ html.gl-over :where(#flick-root) #stage{z-index:2;background:none!important}
 
 /* services: one chapter per screen, text alternates sides */
 :where(#flick-root) .svc-intro{padding-block:0}
-:where(#flick-root) .svc{height:calc(var(--vh) * 320)} /* 고정 구간 220vh: 제목 → 서브 동시 등장 → 잠깐 머묾 → 롤업 */
+:where(#flick-root) .svc{height:calc(var(--vh) * 360)} /* 고정 구간 260vh: 제목 → 서브 동시 등장 → 잠깐 머묾 → 롤업 */
 :where(#flick-root) .svc-stage{position:sticky;top:0;height:calc(var(--vh) * 100);height:calc(var(--vh) * 100);display:grid;align-items:center}
 :where(#flick-root) .svc .inner{width:100%;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:calc(var(--vw) * 4)}
 :where(#flick-root) .svc .copy{min-width:0;max-width:440px}
@@ -152,12 +152,12 @@ html.gl-over :where(#flick-root) #stage{z-index:2;background:none!important}
 :where(#flick-root) .svc.near .copy>*:nth-child(2){transition-delay:.07s}:where(#flick-root) .svc.near .copy>*:nth-child(3){transition-delay:.14s}
 /* 서비스 글자: 단어 하나씩 블러가 걷히며 아래에서 올라옴 · 화면이 풀려 위로 올라갈 땐 단어 하나씩 블러되며 위로 사라짐 */
 :where(#flick-root) .svc.wsplit .copy>h3,:where(#flick-root) .svc.wsplit .copy>ul,:where(#flick-root) .svc.wsplit li{opacity:1!important;filter:none!important;transform:none!important}
-:where(#flick-root) .svc .bw{display:inline-block;opacity:0;filter:blur(10px);transform:translateY(.6em);transition:opacity .75s ease,filter .75s ease,transform .85s cubic-bezier(.2,.7,.2,1);transition-delay:calc(var(--i) * .07s)}
+:where(#flick-root) .svc .bw{display:inline-block;opacity:0;filter:blur(10px);transform:translateY(.6em);transition:opacity 1.2s ease,filter 1.2s ease,transform 1.4s cubic-bezier(.16,.8,.2,1);transition-delay:calc(var(--i) * .1s)}
 :where(#flick-root) .svc .bwd{display:inline-block;white-space:nowrap}
 :where(#flick-root) .svc.near h3 .bw,:where(#flick-root) .svc li.on .bw{opacity:1;filter:blur(0);transform:none}
 :where(#flick-root) .svc .bw.x{transition:none}
 
-  html.mq-860 :where(#flick-root) .svc{height:calc(var(--vh) * 330)}
+  html.mq-860 :where(#flick-root) .svc{height:calc(var(--vh) * 370)}
   html.mq-860 :where(#flick-root) .svc-stage{align-items:end;padding-bottom:calc(var(--vh) * 12)}
   html.mq-860 :where(#flick-root) .svc .inner{grid-template-columns:minmax(0,1fr)}
   html.mq-860 :where(#flick-root) .svc.l .copy,html.mq-860 :where(#flick-root) .svc.r .copy{grid-column:1;justify-self:stretch;max-width:none;padding:22px;border-radius:16px;background:var(--panel);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
@@ -1629,11 +1629,11 @@ frame();
       /* 메인 타이틀: 화면이 고정되고 로고가 멈춘 뒤(조금 더 스크롤)에 등장
          서브 타이틀: 그다음 스크롤에 따라 하나씩 */
       const pinned=r.top<=2&&r.bottom>mid;
-      s.classList.toggle('near',pinned&&p*Math.max(1,r.height-innerHeight)>innerHeight*(k===0?.039:.13));
+      s.classList.toggle('near',pinned&&p*Math.max(1,r.height-innerHeight)>innerHeight*(k===0?.12:.22));
       if(pinned&&p>.05&&p<.93) activeMedia=s.dataset.form;
       const items=s.querySelectorAll('li');
       const n=items.length, H=r.height-innerHeight, A=x=>x*innerHeight/Math.max(1,H), gapP=n>1?A(.39)/(n-1):0;  /* 등장 타이밍은 화면 높이 기준 고정 거리 → 섹션이 길어진 만큼 다 나온 뒤 머무는 시간이 늘어남 */
-      items.forEach(li=>li.classList.toggle('on',pinned&&p>A(.42)));   /* 서브 타이틀은 두 번째 스크롤에 한꺼번에 */
+      items.forEach(li=>li.classList.toggle('on',pinned&&p>A(.75)));   /* 서브 타이틀은 두 번째 스크롤에 한꺼번에 */
       const ul=s.querySelector('ul'); if(ul) ul.classList.toggle('on',inView&&p>.08);
       if(inView){ best=k; }
     });
@@ -1694,7 +1694,7 @@ frame();
   let live=false;
   function set(on){
     live=on&&!rm;
-    secs.forEach(s=>{ targets(s).forEach(live?splitEl:unsplitEl); s.classList.toggle('wsplit',live); });
+    secs.forEach(s=>{ targets(s).forEach(live?splitEl:unsplitEl); s.classList.toggle('wsplit',live); if(!live){ const cp=s.querySelector('.copy'); if(cp) cp.style.transform=''; } });
     if(live) tick();
   }
   window.__flickWords=set;
@@ -1704,7 +1704,9 @@ frame();
     secs.forEach(s=>{
       const r=s.getBoundingClientRect();
       /* 화면 고정이 풀리고(섹션 바닥이 화면 바닥에 닿은 뒤) 위로 올라가는 동안 */
-      const ex=Math.min(1,Math.max(0,(vh-r.bottom)/(vh*.38)));
+      /* 묵직하게: 고정이 풀린 뒤 글자 묶음은 스크롤의 45% 속도로만 올라가고, 화면 높이만큼 스크롤하는 동안 천천히 한 글자씩 사라짐 */
+      const d=Math.max(0,vh-r.bottom), ex=Math.min(1,d/vh);
+      const cp=s.querySelector('.copy'); if(cp){ const tv=d>0?'translateY('+(Math.min(d,vh*1.2)*.55).toFixed(1)+'px)':''; if(cp.style.transform!==tv) cp.style.transform=tv; }
       const els=targets(s), M=els.length, ws=[], st=[];
       els.forEach((el,j)=>{ const cs=el.querySelectorAll('.bw'), n=cs.length; cs.forEach((c,q)=>{ ws.push(c); st.push(j/Math.max(1,M)*.5+(n>1?q/(n-1):0)*.22); }); });
       ws.forEach((w,k)=>{
