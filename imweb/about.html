@@ -154,6 +154,7 @@ html.gl-over :where(#flick-root) #stage{z-index:2;background:none!important}
 :where(#flick-root) .svc.wsplit .copy>h3,:where(#flick-root) .svc.wsplit .copy>ul,:where(#flick-root) .svc.wsplit li{opacity:1!important;filter:none!important;transform:none!important}
 :where(#flick-root) .svc .bw{display:inline-block;opacity:0;filter:blur(10px);transform:translateY(.6em);transition:opacity .9s ease,filter .9s ease,transform 1s cubic-bezier(.18,.75,.2,1);transition-delay:calc(var(--i) * .08s)}
 :where(#flick-root) .svc .bwd{display:inline-block;white-space:nowrap}
+:where(#flick-root) #recap-title .rc{display:inline-block;will-change:opacity,transform,filter}
 :where(#flick-root) .svc.near h3 .bw,:where(#flick-root) .svc li.on .bw{opacity:1;filter:blur(0);transform:none}
 :where(#flick-root) .svc .bw.x{transition:none}
 
@@ -209,7 +210,7 @@ html.mq-720 :where(#flick-root) .side-nav{left:max(8px,env(safe-area-inset-left,
 :where(#flick-root) .card h3{margin:0;font-weight:700;font-size:24px;letter-spacing:-.02em}
 :where(#flick-root) .card ul{margin:0;padding:0;list-style:none;display:grid;gap:6px;font-size:14.5px;color:var(--dim)}
 /* 데스크톱: 카드 구간을 화면에 고정해 OUR SERVICE 제목·카드를 한 장면으로 (제목 잘림·아래 여백 없음), 카드 크게 · 간격 넓고 균일 */
-html.bp-d :where(#flick-root) .recap{height:calc(var(--vh) * 220);padding-block:0}
+html.bp-d :where(#flick-root) .recap{height:calc(var(--vh) * 310);padding-block:0}   /* 앞 90vh: 로고가 OUR SERVICE를 훑으며 글자를 씀 */
 html.bp-d :where(#flick-root) .recap-stage{position:sticky;top:0;height:calc(var(--vh) * 100);display:flex;flex-direction:column;justify-content:space-between;padding-block:calc(var(--vh) * 9) calc(var(--vh) * 10)}
 html.bp-d :where(#flick-root) .recap .lead{max-width:none;margin:0 calc(var(--vw) * 10)}
 html.bp-d :where(#flick-root) #recap-title{white-space:nowrap}
@@ -306,7 +307,7 @@ html.mq-860 :where(#flick-root) .mission .inner{grid-template-columns:minmax(0,1
     de.style.setProperty('--vw-in',(REF[bp]/100)+'px');
     ['d','t','m'].forEach(b=>de.classList.toggle('bp-'+b,b===bp));
     ALLMQ.forEach(n=>de.classList.toggle('mq-'+n,MQ[bp].includes(n)));
-    window.__flickBP=bp; window.__flickK=k; window.__flickRefW=REF[bp];
+    window.__flickBP=bp; window.__flickK=k; window.__flickRefW=REF[bp]; window.__flickRecapSW=bp==='d'?.9:0;
   }
   upd(); addEventListener('resize',upd);
   window.__flickBPUpdate=upd;
@@ -546,11 +547,12 @@ html.mq-860 :where(#flick-root) .mission .inner{grid-template-columns:minmax(0,1
     if(!ready) return; const vh=innerHeight;
     if(window.__flickBP==='d'){
       /* 데스크톱: 카드 구간이 화면에 고정된 동안의 진행도로 접힘 (고정 구간 42%~ 지점부터 왼쪽 카드부터 차례로) */
-      const sec=ol.closest('.recap'), r=sec.getBoundingClientRect(), p=Math.min(1,Math.max(0,-r.top/Math.max(1,r.height-vh)));
+      const sec=ol.closest('.recap'), r=sec.getBoundingClientRect(), SW=(window.__flickRecapSW||0)*vh, p=Math.min(1,Math.max(0,(-r.top-SW)/Math.max(1,r.height-vh-SW)));
       cards.forEach((c,i)=>c.style.setProperty('--c',sm(.42+i*.06,.78+i*.06,p).toFixed(4)));
       /* 들어올 때: 카드가 제목보다 조금씩 늦게 딸려 올라옴 (왼쪽부터 차례로, 화면에 고정되는 순간 제자리) */
-      const lag=Math.min(Math.max(r.top,0),vh);
-      cards.forEach((c,i)=>{ const e=lag/vh; SP[i]=SP[i]||{p:0,v:0,t:0}; SP[i].t=lag*(.3+i*.09)*(1-.3*e); });
+      /* 글자가 거의 다 써질 즈음(훑기 50%~)부터 카드가 차례로 딸려 올라옴 */
+      const q=SW>0?Math.min(1,Math.max(0,(-r.top/SW-.5)/.45)):1, lag=SW>0?(1-q)*vh:Math.min(Math.max(r.top,0),vh);
+      cards.forEach((c,i)=>{ const e=lag/vh; SP[i]=SP[i]||{p:0,v:0,t:0}; SP[i].t=SW>0?lag*(.55+i*.1)/(window.__flickK||1):lag*(.3+i*.09)*(1-.3*e); });   /* 화면 px → 확대 전 기준 px */
       kick(); return;
     }
     cards.forEach((c,i)=>{ const top=c.getBoundingClientRect().top;
@@ -1313,7 +1315,9 @@ function measure(){
     /* 서비스: 고정 화면 안에서 제목의 위치 (고정이 풀린 뒤 제목이 화면 위에서 잘리기 시작하는 시점 계산용) */
     let tTop=0, tH=0; const h3=el.querySelector('h3'), st=el.querySelector('.svc-stage');
     if(h3&&st){ const hr=h3.getBoundingClientRect(), sr=st.getBoundingClientRect(); tTop=Math.max(0,hr.top-sr.top); tH=hr.height; }
-    return {f:F[el.dataset.form], c, s:Math.min(c,top+half-lead), e:Math.max(c,bot-half), tTop, tH};
+    /* 서비스 한눈에(데스크톱): 화면이 고정된 뒤에도 훑는 구간만큼 늦게 도착 */
+    const extra=(el.dataset.form==='glassTop'&&window.__flickBP==='d')?(window.__flickRecapSW||0)*innerHeight:0;
+    return {f:F[el.dataset.form], c, s:Math.min(c,top+half-lead)+extra, e:Math.max(c,bot-half), tTop, tH};
   }).sort((a,b)=>a.c-b.c);
 }
 function segment(){
@@ -1420,8 +1424,26 @@ function frameBody(){
   /* 세로 화면(휴대폰·태블릿): 글자는 화면 너비에 비례하므로 로고의 위아래 위치도 너비에 비례하게.
      기준 화면(휴대폰 390×844 · 태블릿 834×1194)에서는 그대로, 주소창 때문에 화면이 짧은 실제 기기에서도 로고-글자 간격 비율 유지 */
   if(narrow){ const ar=(window.__flickBP==='t')?834/1194:390/844; target.y*=cam.aspect/ar; }
+  /* 디자인 → OUR SERVICE (데스크톱): 왼쪽 화면 밖으로 빠졌다가, 글자 줄을 따라 왼→오른쪽으로 훑고, 오른쪽 위 제자리로 */
+  const TB=window.__flickTB, SWr=window.__flickRecapSW||0;
+  let sweepOn=false;
+  if(!narrow&&SWr>0&&TB&&a===F.design&&b===F.glassTop){
+    sweepOn=true;
+    const T=1+SWr, a1=1/T, a2=(1+SWr-.25)/T;
+    const wx=px=>(px/innerWidth-.5)*vw, wy=py=>(.5-py/innerHeight)*vh;
+    const ty=wy(TB.cy), th=TB.h/innerHeight*vh;
+    const sc=Math.max(.22,Math.min(.9,th*.75/1.62));
+    const s0=a.scale*fit, x0=a.side*Math.max(vw*.18, vw*(.5-OUTER)-1.62*s0), y0=a.y*(1-Math.abs(a.side)*.6);
+    const sr=(b.dScale!=null?b.dScale:b.scale)*fit, xr=vw*(.5-(b.dEdge||.1))-1.62*sr, yr=(b.dY!=null?b.dY:0)*vh;
+    const xs=-vw/2-1.62*sc*1.6, xe=wx(TB.r)+1.62*sc*1.1;
+    let X,Y,S;
+    if(u<a1){ const k=sm(0,1,u/a1); X=L(x0,xs,k); Y=L(y0,ty,k); S=L(s0,sc,sm(0,.7,u/a1)); }
+    else if(u<a2){ const k=(u-a1)/(a2-a1), e=k<.5?2*k*k:1-2*(1-k)*(1-k); X=L(xs,xe,L(k,e,.5)); Y=ty+Math.sin(k*Math.PI)*th*.08; S=sc; }
+    else { const k=sm(0,1,(u-a2)/(1-a2)); X=L(xe,xr,k); Y=L(ty,yr,k); S=L(sc,sr,k); }
+    target.x=X; target.y=Y; target.z=0; target.scale=S;
+  }
   /* 데스크톱 전용 자리(서비스 한눈에: 오른쪽 위). 앞뒤 구간과는 위치·크기를 이어서 보간 → 다음 구간으로 갈 때 회전하며 내려감 */
-  if(!narrow && (a.dEdge!=null||b.dEdge!=null||a.dXk||b.dXk)){
+  if(!narrow && !sweepOn && (a.dEdge!=null||b.dEdge!=null||a.dXk||b.dXk)){
     const sc=f=>(f.dScale!=null?f.dScale:f.scale)*fit;
     const px=f=>f.dEdge!=null ? vw*(.5-f.dEdge)-1.62*sc(f) : f.side*Math.max(vw*.18, vw*(.5-OUTER)-1.62*sc(f))*(f.dXk||1);   /* dXk: 화면 안쪽으로 당기는 비율 */
     const py=f=>f.dY!=null ? f.dY*vh : f.y*(1-Math.abs(f.side)*.6);
@@ -1468,6 +1490,7 @@ function frameBody(){
   { const pv=new THREE.Vector3(root.position.x,root.position.y+logo.position.y*root.scale.x,root.position.z);
     const dz=Math.max(.01,cam.position.z-pv.z); pv.project(cam);
     const A={x:(pv.x*.5+.5)*innerWidth, y:(-pv.y*.5+.5)*innerHeight, k:root.scale.x/dz};
+    window.__flickLogoX={x:A.x,t:performance.now()};   /* OUR SERVICE 글자 쓰기용: 로고의 화면 가로 위치 */
     const R=window.__flickLogoRect;
     if(R&&(flPhoto<.001||(photoLive&&photoDir===0))){ photoRect=R; photoAnc=A; }
     let Q=photoRect||R;
@@ -1755,6 +1778,46 @@ frame();
 })();
 </script>
 
+<script>
+/* OUR SERVICE 제목: 로고가 지나간 글자부터 한 글자씩 블러가 걷히며 써짐 (데스크톱) */
+(function(){
+  const t=document.getElementById('recap-title'), sec=document.querySelector('.recap'); if(!t||!sec) return;
+  const rm=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let chars=[], split=false;
+  function doSplit(){ if(split) return; split=true;
+    [...t.childNodes].forEach(n=>{ if(n.nodeType!==3||!n.nodeValue.trim()) return; const f=document.createDocumentFragment();
+      [...n.nodeValue].forEach(ch=>{ if(/\s/.test(ch)){ f.append(ch); return; } const sp=document.createElement('span'); sp.className='rc'; sp.textContent=ch; f.append(sp); });
+      n.replaceWith(f); });
+    chars=[...t.querySelectorAll('.rc')]; }
+  function unSplit(){ if(!split) return; split=false; t.querySelectorAll('.rc').forEach(sp=>sp.replaceWith(sp.textContent)); t.normalize(); chars=[]; window.__flickTB=null; }
+  const ed=()=>document.documentElement.classList.contains('ed-on');
+  let raf=0;
+  function frame(){ raf=0;
+    const on=window.__flickBP==='d'&&!rm&&!ed()&&(window.__flickRecapSW||0)>0;
+    if(!on){ unSplit(); return; }
+    doSplit(); if(!chars.length) return;
+    const vh=innerHeight, r=sec.getBoundingClientRect(), off=-r.top, SW=window.__flickRecapSW*vh;
+    const rs=chars.map(c=>c.getBoundingClientRect());
+    const f0=rs[0], fl=rs[rs.length-1];
+    window.__flickTB={l:f0.left,r:fl.right,cy:(f0.top+f0.bottom)/2,h:f0.bottom-f0.top};
+    if(r.bottom<0||r.top>vh*1.2){ return; }
+    let lx;
+    if(r.top>2) lx=-1e5;                     /* 아직 고정 전: 로고는 왼쪽 밖 → 글자 숨김 */
+    else if(off>SW) lx=1e5;                  /* 훑기 끝: 전부 보임 */
+    else { const L=window.__flickLogoX; lx=(L&&performance.now()-L.t<300)?L.x:(-innerWidth*.1+(fl.right+innerWidth*.15)*Math.min(1,off/(SW-vh*.25))); }
+    chars.forEach((c,i)=>{ const q=rs[i], cw=Math.max(8,q.width), e0=(lx-(q.left))/(cw*1.6), e=Math.min(1,Math.max(0,e0)), ee=e*e*(3-2*e);
+      if(c._e===ee) return; c._e=ee;
+      c.style.opacity=ee.toFixed(3); c.style.filter=ee<.99?'blur('+((1-ee)*12).toFixed(1)+'px)':''; c.style.transform=ee<.99?'translateY('+((1-ee)*.35).toFixed(3)+'em)':''; });
+    if(r.top<=2&&off<=SW+vh*.1) raf=requestAnimationFrame(frame);   /* 로고가 움직이는 동안 계속 따라감 */
+  }
+  const kick=()=>{ if(!raf) raf=requestAnimationFrame(frame); };
+  addEventListener('scroll',kick,{passive:true}); addEventListener('resize',kick);
+  new MutationObserver(kick).observe(document.documentElement,{attributes:true,attributeFilter:['class']});
+  window.__flickRC=on=>{ if(!on) unSplit(); kick(); };
+  setTimeout(kick,600); kick();
+})();
+</script>
+
 <style>
 /* edit mode */
 :where(#flick-root) main > section,:where(#flick-root) #services > section,:where(#flick-root) #services > .svc-intro{position:relative}
@@ -1912,7 +1975,7 @@ html.ed-on :where(#flick-root) .ed-gap{display:block}
 <div class="ed-guide v" id="ed-gv" aria-hidden="true"></div>
 <div class="ed-guide hz" id="ed-gh" aria-hidden="true"></div>
 
-<script type="application/json" id="flick-baked">{"v":6,"mat":"optical","thick":1,"bp":{"d":{"added":{},"cg":{},"gaps":{},"groups":{"g-mw38n2u6":[".svc li#3",".svc li#4",".svc li#5",".svc li#6"],"g-svc3":[".svc h3#3",".svc li#11",".svc li#12",".svc li#13",".svc li#14"]},"hts":{"sec0":-126,"sec1":31,"sec6":187,"sec8":-90},"items":{".card .art#0":{"hide":true},".card .art#1":{"hide":true},".card .art#2":{"hide":true},".card .art#3":{"hide":true},".eyebrow#0":{"fs":10.846,"hide":true,"lh":1.2,"ls":0.055,"t":{"0":""},"x":-764},".eyebrow#1":{"fs":20.062,"ls":0,"t":{"0":""},"w":2080,"y":71},".eyebrow#2":{"fs":16.284,"ls":0,"w":1463,"x":-1239,"y":-31},".grow h2#0":{"fs":1.893,"h":{"0":[["브랜드와\n",0],["함께 성장하는",0,1],[" 더플릭",0]]},"ls":-0.025,"t":{"0":"브랜드와\n함께 성장하는 더플릭"},"ta":"left","w":931,"x":-748,"y":194},".grow p#0":{"fs":1.667,"h":{"0":[["모든",600],[" ",0],["프로젝트는",600],[" ",0],["단순히",600],[" ",0],["콘텐츠",600],[" ",0],["제작을",600],[" ",0],["넘어,",600],["\n ",0],["브랜드의",600],[" ",0],["장기적인",600],[" ",0],["가치",600],[" ",0],["성장을",600],[" ",0],["목표로",600],[" ",0],["합니다.",600],["\n",0],["우리는",600],[" ",0],["소통과",600],[" ",0],["책임감을",600],[" ",0],["바탕으로",600],[" ",0],["팀원,",600],[" ",0],["고객,",600],[" ",0],["브랜드",600],[" ",0],["모두의",600],[" ",0],["성장을",600],[" ",0],["추구하며,",600],["\n",0],["더",600],[" ",0],["나은",600],[" ",0],["브랜드",600],[" ",0],["경험을",600],[" ",0],["통해",600],[" ",0],["공공과",600],[" ",0],["기업이",600],[" ",0],["함께",600],[" ",0],["빛날",600],[" ",0],["수",600],[" ",0],["있는",600],[" ",0],["미래를",600],[" ",0],["설계합니다.",600]]},"lh":2.1,"ls":-0.025,"ta":"left","w":1397,"x":1094,"y":-146},".grow p#1":{"fs":2.62,"fw":700,"ls":-0.025,"ta":"left","w":1002,"x":975,"y":-158},".hero .sub#0":{"fs":1.856,"fw":500,"ls":-0.025,"t":{"0":"2021년 창립 이래, 공공기관, 선거컨설팅, 커머셜 분야에서\n콘텐츠 혁신과 브랜드 경험의 새로운 패러다임을 만들어 오고 있습니다."},"w":957,"x":-19,"y":164},".hero h1#0":{"fs":2.337,"h":{"0":[["주식회사 더플릭",700],["은\n고객의 가치를 창의적으로 재해석 하는\n브랜딩 에이전시 입니다.",600]]},"lh":1.35,"ls":-0.025,"w":1716,"x":-398,"y":121},".step .box#0":{"fs":1.274},".step .box#1":{"fs":1.274},".step .box#2":{"fs":1.2},".step .dot#0":{"fs":1.274},".step .dot#1":{"fs":1.274},".step .dot#2":{"fs":1.274},".step h3#2":{"fs":0.942},".step p#1":{"t":{"0":"창의적인 아이디어와 차별화된 콘텐츠로\n독창적인 스토리를 담아냅니다."}},".step p#2":{"fs":0.942,"t":{"0":"고객의 목표와 시장의 흐름을 연결하여 브랜드의 장기적인 영향력을\n구축할 수 있는 프로젝트를 기획하고 실행합니다."}},".svc .no#0":{"hide":true,"x":-615},".svc .no#1":{"hide":true},".svc .no#2":{"hide":true},".svc .no#3":{"hide":true},".svc h3#0":{"fs":2.789,"ls":-0.025,"w":549,"x":-613,"y":-110},".svc h3#1":{"fs":2.789,"ls":-0.025,"ta":"right","w":549,"x":504,"y":-97},".svc h3#2":{"fs":2.789,"ls":-0.025,"w":578,"x":-613,"y":-97},".svc h3#3":{"fs":2.789,"ls":-0.025,"ta":"right","w":549,"x":504,"y":-97},".svc li#0":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"x":-613,"y":-49},".svc li#1":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"x":-613,"y":-12},".svc li#10":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"x":-613,"y":72},".svc li#11":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"ta":"right","x":613,"y":-36},".svc li#12":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"ta":"right","x":613,"y":1},".svc li#13":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"ta":"right","x":613,"y":36},".svc li#14":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"ta":"right","x":613,"y":72},".svc li#2":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"x":-613,"y":23},".svc li#3":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"ta":"right","x":613,"y":-36},".svc li#4":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"ta":"right","x":613,"y":1},".svc li#5":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"ta":"right","x":613,"y":36},".svc li#6":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"ta":"right","x":613,"y":72},".svc li#7":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"x":-613,"y":-36},".svc li#8":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"x":-613,"y":1},".svc li#9":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"x":-613,"y":36}},"photo":{}},"m":{"added":{},"cg":{},"gaps":{},"groups":{},"hts":{},"items":{".card .art#0":{"hide":true},".card .art#1":{"hide":true},".card .art#2":{"hide":true},".card .art#3":{"hide":true},".eyebrow#0":{"hide":true,"t":{"0":""}},".grow p#0":{"h":{"0":[["모든",600],[" ",0],["프로젝트는",600],[" ",0],["단순히",600],[" ",0],["콘텐츠",600],[" ",0],["제작을",600],[" ",0],["넘어,",600],[" ",0],["브랜드의",600],[" ",0],["장기적인",600],[" ",0],["가치",600],[" ",0],["성장을",600],[" ",0],["목표로",600],[" ",0],["합니다.\n우리는",600],[" ",0],["소통과",600],[" ",0],["책임감을",600],[" ",0],["바탕으로",600],[" ",0],["팀원,",600],[" ",0],["고객,",600],[" ",0],["브랜드",600],[" ",0],["모두의",600],[" ",0],["성장을",600],[" ",0],["추구하며,\n더",600],[" ",0],["나은",600],[" ",0],["브랜드",600],[" ",0],["경험을",600],[" ",0],["통해",600],[" ",0],["공공과",600],[" ",0],["기업이",600],[" ",0],["함께",600],[" ",0],["빛날",600],[" ",0],["수",600],[" ",0],["있는",600],[" ",0],["미래를",600],[" ",0],["설계합니다.",600]]},"t":{"0":"모든 프로젝트는 단순히 콘텐츠 제작을 넘어, 브랜드의 장기적인 가치 성장을 목표로 합니다.\n우리는 소통과 책임감을 바탕으로 팀원, 고객, 브랜드 모두의 성장을 추구하며,\n더 나은 브랜드 경험을 통해 공공과 기업이 함께 빛날 수 있는 미래를 설계합니다."}},".hero .sub#0":{"fw":500,"t":{"0":"2021년 창립 이래, 공공기관, 선거컨설팅, 커머셜 분야에서\n콘텐츠 혁신과 브랜드 경험의 새로운 패러다임을 만들어 오고 있습니다."}},".hero h1#0":{"h":{"0":[["주식회사 더플릭",700],["은\n고객의 가치를 창의적으로 재해석 하는\n브랜딩 에이전시 입니다.",600]]}},".svc .no#0":{"hide":true},".svc .no#1":{"hide":true},".svc .no#2":{"hide":true},".svc .no#3":{"hide":true},".svc li#0":{"fw":500},".svc li#1":{"fw":500},".svc li#10":{"fw":500},".svc li#11":{"fw":500},".svc li#12":{"fw":500},".svc li#13":{"fw":500},".svc li#14":{"fw":500},".svc li#2":{"fw":500},".svc li#3":{"fw":500},".svc li#4":{"fw":500},".svc li#5":{"fw":500},".svc li#6":{"fw":500},".svc li#7":{"fw":500},".svc li#8":{"fw":500},".svc li#9":{"fw":500}},"photo":{}},"t":{"added":{},"cg":{},"gaps":{},"groups":{},"hts":{},"items":{".card .art#0":{"hide":true},".card .art#1":{"hide":true},".card .art#2":{"hide":true},".card .art#3":{"hide":true},".eyebrow#0":{"hide":true,"t":{"0":""}},".grow p#0":{"h":{"0":[["모든",600],[" ",0],["프로젝트는",600],[" ",0],["단순히",600],[" ",0],["콘텐츠",600],[" ",0],["제작을",600],[" ",0],["넘어,",600],[" ",0],["브랜드의",600],[" ",0],["장기적인",600],[" ",0],["가치",600],[" ",0],["성장을",600],[" ",0],["목표로",600],[" ",0],["합니다.\n우리는",600],[" ",0],["소통과",600],[" ",0],["책임감을",600],[" ",0],["바탕으로",600],[" ",0],["팀원,",600],[" ",0],["고객,",600],[" ",0],["브랜드",600],[" ",0],["모두의",600],[" ",0],["성장을",600],[" ",0],["추구하며,\n더",600],[" ",0],["나은",600],[" ",0],["브랜드",600],[" ",0],["경험을",600],[" ",0],["통해",600],[" ",0],["공공과",600],[" ",0],["기업이",600],[" ",0],["함께",600],[" ",0],["빛날",600],[" ",0],["수",600],[" ",0],["있는",600],[" ",0],["미래를",600],[" ",0],["설계합니다.",600]]},"t":{"0":"모든 프로젝트는 단순히 콘텐츠 제작을 넘어, 브랜드의 장기적인 가치 성장을 목표로 합니다.\n우리는 소통과 책임감을 바탕으로 팀원, 고객, 브랜드 모두의 성장을 추구하며,\n더 나은 브랜드 경험을 통해 공공과 기업이 함께 빛날 수 있는 미래를 설계합니다."}},".hero .sub#0":{"fw":500,"t":{"0":"2021년 창립 이래, 공공기관, 선거컨설팅, 커머셜 분야에서\n콘텐츠 혁신과 브랜드 경험의 새로운 패러다임을 만들어 오고 있습니다."}},".hero h1#0":{"h":{"0":[["주식회사 더플릭",700],["은\n고객의 가치를 창의적으로 재해석 하는\n브랜딩 에이전시 입니다.",600]]}},".svc .no#0":{"hide":true},".svc .no#1":{"hide":true},".svc .no#2":{"hide":true},".svc .no#3":{"hide":true},".svc li#0":{"fw":500},".svc li#1":{"fw":500},".svc li#10":{"fw":500},".svc li#11":{"fw":500},".svc li#12":{"fw":500},".svc li#13":{"fw":500},".svc li#14":{"fw":500},".svc li#2":{"fw":500},".svc li#3":{"fw":500},".svc li#4":{"fw":500},".svc li#5":{"fw":500},".svc li#6":{"fw":500},".svc li#7":{"fw":500},".svc li#8":{"fw":500},".svc li#9":{"fw":500}},"photo":{}}}}</script>
+<script type="application/json" id="flick-baked">{"v":6,"mat":"optical","thick":1,"bp":{"d":{"added":{},"cg":{},"gaps":{},"groups":{"g-mw38n2u6":[".svc li#3",".svc li#4",".svc li#5",".svc li#6"],"g-svc3":[".svc h3#3",".svc li#11",".svc li#12",".svc li#13",".svc li#14"]},"hts":{"sec0":-126,"sec1":31,"sec6":187,"sec8":-90},"items":{".card .art#0":{"hide":true},".card .art#1":{"hide":true},".card .art#2":{"hide":true},".card .art#3":{"hide":true},".card#0":{"ht":506},".eyebrow#0":{"fs":10.846,"hide":true,"lh":1.2,"ls":0.055,"t":{"0":""},"x":-764},".eyebrow#1":{"fs":20.062,"ls":0,"t":{"0":""},"w":2080,"y":71},".eyebrow#2":{"fs":16.284,"ls":0,"w":1463,"x":-1239,"y":-31},".grow h2#0":{"fs":1.893,"h":{"0":[["브랜드와\n",0],["함께 성장하는",0,1],[" 더플릭",0]]},"ls":-0.025,"t":{"0":"브랜드와\n함께 성장하는 더플릭"},"ta":"left","w":931,"x":-785,"y":239},".grow p#0":{"fs":2.056,"fw":700,"lh":1.8,"ls":-0.025,"t":{"0":"모든 프로젝트는 단순히 콘텐츠 제작을 넘어,\n브랜드의 장기적인 가치 성장을 목표로 합니다.\n우리는 소통과 책임감을 바탕으로 \n팀원, 고객, 브랜드 모두의 성장을 추구하며,\n더 나은 브랜드 경험을 통해 \n공공과 기업이 함께 빛날 수 있는 미래를 설계합니다."},"ta":"left","w":806,"x":935,"y":-255},".grow p#1":{"fs":2.444,"fw":700,"ls":-0.025,"ta":"left","w":850,"x":935,"y":-219},".hero .sub#0":{"fs":1.856,"fw":500,"ls":-0.025,"t":{"0":"2021년 창립 이래, 공공기관, 선거컨설팅, 커머셜 분야에서\n콘텐츠 혁신과 브랜드 경험의 새로운 패러다임을 만들어 오고 있습니다."},"w":957,"x":-19,"y":164},".hero h1#0":{"fs":2.337,"h":{"0":[["주식회사 더플릭",700],["은\n고객의 가치를 창의적으로 재해석 하는\n브랜딩 에이전시 입니다.",600]]},"lh":1.35,"ls":-0.025,"w":1716,"x":-398,"y":121},".step .box#0":{"fs":1.274},".step .box#1":{"fs":1.274},".step .box#2":{"fs":1.2},".step .dot#0":{"fs":1.274},".step .dot#1":{"fs":1.274},".step .dot#2":{"fs":1.274},".step h3#2":{"fs":0.942},".step p#1":{"t":{"0":"창의적인 아이디어와 차별화된 콘텐츠로\n독창적인 스토리를 담아냅니다."}},".step p#2":{"fs":0.942,"t":{"0":"고객의 목표와 시장의 흐름을 연결하여 브랜드의 장기적인 영향력을\n구축할 수 있는 프로젝트를 기획하고 실행합니다."}},".svc .no#0":{"hide":true,"x":-615},".svc .no#1":{"hide":true},".svc .no#2":{"hide":true},".svc .no#3":{"hide":true},".svc h3#0":{"fs":2.789,"ls":-0.025,"w":549,"x":-613,"y":-110},".svc h3#1":{"fs":2.789,"ls":-0.025,"ta":"right","w":549,"x":504,"y":-97},".svc h3#2":{"fs":2.789,"ls":-0.025,"w":578,"x":-613,"y":-97},".svc h3#3":{"fs":2.789,"ls":-0.025,"ta":"right","w":549,"x":504,"y":-97},".svc li#0":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"x":-613,"y":-49},".svc li#1":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"x":-613,"y":-12},".svc li#10":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"x":-613,"y":72},".svc li#11":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"ta":"right","x":613,"y":-36},".svc li#12":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"ta":"right","x":613,"y":1},".svc li#13":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"ta":"right","x":613,"y":36},".svc li#14":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"ta":"right","x":613,"y":72},".svc li#2":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"x":-613,"y":23},".svc li#3":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"ta":"right","x":613,"y":-36},".svc li#4":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"ta":"right","x":613,"y":1},".svc li#5":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"ta":"right","x":613,"y":36},".svc li#6":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"ta":"right","x":613,"y":72},".svc li#7":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"x":-613,"y":-36},".svc li#8":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"x":-613,"y":1},".svc li#9":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"x":-613,"y":36}},"photo":{}},"m":{"added":{},"cg":{},"gaps":{},"groups":{},"hts":{},"items":{".card .art#0":{"hide":true},".card .art#1":{"hide":true},".card .art#2":{"hide":true},".card .art#3":{"hide":true},".eyebrow#0":{"hide":true,"t":{"0":""}},".grow p#0":{"h":{"0":[["모든",600],[" ",0],["프로젝트는",600],[" ",0],["단순히",600],[" ",0],["콘텐츠",600],[" ",0],["제작을",600],[" ",0],["넘어,",600],[" ",0],["브랜드의",600],[" ",0],["장기적인",600],[" ",0],["가치",600],[" ",0],["성장을",600],[" ",0],["목표로",600],[" ",0],["합니다.\n우리는",600],[" ",0],["소통과",600],[" ",0],["책임감을",600],[" ",0],["바탕으로",600],[" ",0],["팀원,",600],[" ",0],["고객,",600],[" ",0],["브랜드",600],[" ",0],["모두의",600],[" ",0],["성장을",600],[" ",0],["추구하며,\n더",600],[" ",0],["나은",600],[" ",0],["브랜드",600],[" ",0],["경험을",600],[" ",0],["통해",600],[" ",0],["공공과",600],[" ",0],["기업이",600],[" ",0],["함께",600],[" ",0],["빛날",600],[" ",0],["수",600],[" ",0],["있는",600],[" ",0],["미래를",600],[" ",0],["설계합니다.",600]]},"t":{"0":"모든 프로젝트는 단순히 콘텐츠 제작을 넘어, 브랜드의 장기적인 가치 성장을 목표로 합니다.\n우리는 소통과 책임감을 바탕으로 팀원, 고객, 브랜드 모두의 성장을 추구하며,\n더 나은 브랜드 경험을 통해 공공과 기업이 함께 빛날 수 있는 미래를 설계합니다."}},".hero .sub#0":{"fw":500,"t":{"0":"2021년 창립 이래, 공공기관, 선거컨설팅, 커머셜 분야에서\n콘텐츠 혁신과 브랜드 경험의 새로운 패러다임을 만들어 오고 있습니다."}},".hero h1#0":{"h":{"0":[["주식회사 더플릭",700],["은\n고객의 가치를 창의적으로 재해석 하는\n브랜딩 에이전시 입니다.",600]]}},".svc .no#0":{"hide":true},".svc .no#1":{"hide":true},".svc .no#2":{"hide":true},".svc .no#3":{"hide":true},".svc li#0":{"fw":500},".svc li#1":{"fw":500},".svc li#10":{"fw":500},".svc li#11":{"fw":500},".svc li#12":{"fw":500},".svc li#13":{"fw":500},".svc li#14":{"fw":500},".svc li#2":{"fw":500},".svc li#3":{"fw":500},".svc li#4":{"fw":500},".svc li#5":{"fw":500},".svc li#6":{"fw":500},".svc li#7":{"fw":500},".svc li#8":{"fw":500},".svc li#9":{"fw":500}},"photo":{}},"t":{"added":{},"cg":{},"gaps":{},"groups":{},"hts":{},"items":{".card .art#0":{"hide":true},".card .art#1":{"hide":true},".card .art#2":{"hide":true},".card .art#3":{"hide":true},".eyebrow#0":{"hide":true,"t":{"0":""}},".grow p#0":{"h":{"0":[["모든",600],[" ",0],["프로젝트는",600],[" ",0],["단순히",600],[" ",0],["콘텐츠",600],[" ",0],["제작을",600],[" ",0],["넘어,",600],[" ",0],["브랜드의",600],[" ",0],["장기적인",600],[" ",0],["가치",600],[" ",0],["성장을",600],[" ",0],["목표로",600],[" ",0],["합니다.\n우리는",600],[" ",0],["소통과",600],[" ",0],["책임감을",600],[" ",0],["바탕으로",600],[" ",0],["팀원,",600],[" ",0],["고객,",600],[" ",0],["브랜드",600],[" ",0],["모두의",600],[" ",0],["성장을",600],[" ",0],["추구하며,\n더",600],[" ",0],["나은",600],[" ",0],["브랜드",600],[" ",0],["경험을",600],[" ",0],["통해",600],[" ",0],["공공과",600],[" ",0],["기업이",600],[" ",0],["함께",600],[" ",0],["빛날",600],[" ",0],["수",600],[" ",0],["있는",600],[" ",0],["미래를",600],[" ",0],["설계합니다.",600]]},"t":{"0":"모든 프로젝트는 단순히 콘텐츠 제작을 넘어, 브랜드의 장기적인 가치 성장을 목표로 합니다.\n우리는 소통과 책임감을 바탕으로 팀원, 고객, 브랜드 모두의 성장을 추구하며,\n더 나은 브랜드 경험을 통해 공공과 기업이 함께 빛날 수 있는 미래를 설계합니다."}},".hero .sub#0":{"fw":500,"t":{"0":"2021년 창립 이래, 공공기관, 선거컨설팅, 커머셜 분야에서\n콘텐츠 혁신과 브랜드 경험의 새로운 패러다임을 만들어 오고 있습니다."}},".hero h1#0":{"h":{"0":[["주식회사 더플릭",700],["은\n고객의 가치를 창의적으로 재해석 하는\n브랜딩 에이전시 입니다.",600]]}},".svc .no#0":{"hide":true},".svc .no#1":{"hide":true},".svc .no#2":{"hide":true},".svc .no#3":{"hide":true},".svc li#0":{"fw":500},".svc li#1":{"fw":500},".svc li#10":{"fw":500},".svc li#11":{"fw":500},".svc li#12":{"fw":500},".svc li#13":{"fw":500},".svc li#14":{"fw":500},".svc li#2":{"fw":500},".svc li#3":{"fw":500},".svc li#4":{"fw":500},".svc li#5":{"fw":500},".svc li#6":{"fw":500},".svc li#7":{"fw":500},".svc li#8":{"fw":500},".svc li#9":{"fw":500}},"photo":{}}}}</script>
 <script>
 (function(){
   /* ---------- what can be edited ---------- */
@@ -2089,6 +2152,7 @@ html.ed-on :where(#flick-root) .ed-gap{display:block}
     if(!v&&editing) finishEdit();
     if(!v) mEls.forEach(m=>m.classList.remove('show'));
     if(typeof window.__flickWords==='function') window.__flickWords(!v);
+    if(typeof window.__flickRC==='function') window.__flickRC(!v);
     on=v; phTick(); showBP(); document.documentElement.classList.toggle('ed-on',on);
     if(!window.__edNoX){ window.__edNoX=1; addEventListener('scroll',()=>{ if(scrollX) scrollTo(0,scrollY); },{passive:true}); }   /* 편집 중 글이 넘쳐도 화면이 옆으로 밀리지 않게 */
     bToggle.textContent=on?'편집 끝내기':'편집 모드';
