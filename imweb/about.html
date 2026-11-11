@@ -1,7 +1,31 @@
-<script>document.querySelectorAll('.doz_sys').forEach(function(e){e.classList.remove('doz_sys')})</script>
+<script>
+/* 아임웹 공통 상단 메뉴·푸터는 그대로 두고, 그 사이에 이 페이지를 넣음 */
+(function(){
+  document.querySelectorAll('.doz_sys').forEach(function(e){ e.classList.remove('doz_sys'); });
+  var root=document.getElementById('flick-root'); if(!root) return;
+  /* 예전 불러오기 코드가 넣은 '나머지 전부 숨김' 규칙 제거 */
+  [].forEach.call(document.querySelectorAll('style'),function(st){ if(st.textContent.indexOf('body>*:not(#flick-root)')>=0) st.textContent=st.textContent.replace(/body>\*:not\(#flick-root\)[^}]*\}/,''); });
+  var ft=document.getElementById('doz_footer_wrap');
+  if(ft&&ft.parentNode===document.body){ if(root.nextElementSibling!==ft) document.body.insertBefore(root,ft); }
+  else if(root.parentNode!==document.body) document.body.appendChild(root);
+  /* 코드 위젯이 원래 들어 있던 본문 섹션(이제 비어 있음)은 숨김 */
+  [].forEach.call(document.body.children,function(e){ if(e.classList&&e.classList.contains('section_wrap')&&!e.contains(root)) e.style.display='none'; });
+  /* 첫 화면 높이 = 화면 높이 - 상단 메뉴 높이 */
+  function hdr(){ var h=document.getElementById('doz_header_wrap'); var px=h&&getComputedStyle(h).display!=='none'?h.getBoundingClientRect().height:0; var k=window.__flickK||1; document.documentElement.style.setProperty('--hdr-v',(px/k)+'px'); }
+  hdr(); addEventListener('resize',function(){ setTimeout(hdr,0); }); setTimeout(hdr,300); setTimeout(hdr,1500);
+})();
+</script>
 <style>#ed-bar,#ed-props,#ed-box,#ed-photo,#ed-help{display:none!important}
 /* 아임웹 기본 스타일이 이 페이지를 덮지 않게 */
-html body,html body#doz_body{background:var(--bg)!important;color:var(--ink)!important}
+html body,html body#doz_body{background:var(--bg)!important}
+#flick-root{color:var(--ink)}
+/* 아임웹 상단 메뉴·푸터가 3D 화면 위에 오도록 */
+html body #doz_header_wrap{position:relative;z-index:1000}html body #doz_footer_wrap{position:relative;z-index:30}
+/* 이 페이지 자체 상단 메뉴는 아임웹에서는 쓰지 않음 */
+#flick-root .top{display:none!important}
+/* 첫 화면: 상단 메뉴 높이만큼 줄여서 글자가 지금처럼 화면 안에 */
+#flick-root .hero{min-height:calc(var(--vh) * 100 - var(--hdr-v,0px))!important}
+.ed-gap,.ed-m,#ed-tbox,#ed-tag,#ed-gv,#ed-gh{display:none!important}
 /* 화면 고정(sticky)이 동작하도록: html·body에 스크롤 영역을 만들지 않음 */
 html:root{overflow:visible!important;height:auto!important}html body,html body#doz_body{overflow-x:clip!important;overflow-y:visible!important;height:auto!important}
 #flick-root{font-family:var(--f-body);font-size:16px;font-weight:500;line-height:1.7;letter-spacing:normal;text-align:left;word-break:keep-all;overflow-wrap:break-word;-webkit-font-smoothing:antialiased}
