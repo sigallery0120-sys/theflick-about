@@ -2,6 +2,8 @@
 <style>#ed-bar,#ed-props,#ed-box,#ed-photo,#ed-help{display:none!important}
 /* 아임웹 기본 스타일이 이 페이지를 덮지 않게 */
 html body,html body#doz_body{background:var(--bg)!important;color:var(--ink)!important}
+/* 화면 고정(sticky)이 동작하도록: html·body에 스크롤 영역을 만들지 않음 */
+html:root{overflow:visible!important;height:auto!important}html body,html body#doz_body{overflow-x:clip!important;overflow-y:visible!important;height:auto!important}
 #flick-root{font-family:var(--f-body);font-size:16px;font-weight:500;line-height:1.7;letter-spacing:normal;text-align:left;word-break:keep-all;overflow-wrap:break-word;-webkit-font-smoothing:antialiased}
 #flick-root main{max-width:none!important;margin:0!important;padding:0!important;width:auto!important;float:none!important}
 #flick-root .nav>li{position:static}#flick-root .nav>li>a{padding:0;display:inline;position:static;background:none}
