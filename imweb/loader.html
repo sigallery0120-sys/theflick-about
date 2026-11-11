@@ -6,11 +6,13 @@
   /* 페이지 파일 위치: GitHub 저장소의 imweb 폴더 (아래 @뒤 값은 고정할 버전) */
   var BASE='https://cdn.jsdelivr.net/gh/sigallery0120-sys/theflick-about@__REF__/imweb/';
   var root=document.getElementById('flick-root');
+  /* 브라우저가 아임웹 페이지의 이전 스크롤 위치를 복원하지 않게, 항상 맨 위에서 시작 */
+  try{ history.scrollRestoration='manual'; }catch(e){} window.scrollTo(0,0);
   /* 아임웹 기본 화면(헤더·메뉴·푸터·여백)은 이 페이지에서만 숨기고, 이 페이지가 화면 전체를 씀 */
   document.body.appendChild(root);
   var st=document.createElement('style');
   st.textContent='body>*:not(#flick-root):not(script):not(style){display:none!important}'
-    +'html,body{margin:0!important;padding:0!important;height:auto!important;min-height:0!important;overflow-x:hidden!important;overflow-y:auto!important;background:#f9f9f9}'
+    +'html,body{margin:0!important;padding:0!important;height:auto!important;min-height:0!important;overflow-x:hidden!important;overflow-y:auto!important;background:#f9f9f9!important}'
     +'#flick-root{display:block;position:relative;width:100%}';
   document.head.appendChild(st);
   fetch(BASE+'about.html').then(function(r){ if(!r.ok) throw new Error(r.status); return r.text(); }).then(function(html){
