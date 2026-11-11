@@ -1,8 +1,15 @@
+<script>document.querySelectorAll('.doz_sys').forEach(function(e){e.classList.remove('doz_sys')})</script>
 <style>#ed-bar,#ed-props,#ed-box,#ed-photo,#ed-help{display:none!important}
-/* 아임웹 기본 스타일(검은 body 배경, 링크 색)이 이 페이지를 덮지 않게 */
+/* 아임웹 기본 스타일이 이 페이지를 덮지 않게 */
 html body,html body#doz_body{background:var(--bg)!important;color:var(--ink)!important}
-#flick-root .top .mark,#flick-root .nav a{color:var(--ink)!important}
-#flick-root a{text-decoration:none}</style>
+#flick-root{font-family:var(--f-body);font-size:16px;font-weight:500;line-height:1.7;letter-spacing:normal;text-align:left;word-break:keep-all;overflow-wrap:break-word;-webkit-font-smoothing:antialiased}
+#flick-root main{max-width:none!important;margin:0!important;padding:0!important;width:auto!important;float:none!important}
+#flick-root .nav>li{position:static}#flick-root .nav>li>a{padding:0;display:inline;position:static;background:none}
+#flick-root .top .mark,#flick-root .nav a{color:var(--ink)!important}#flick-root a{text-decoration:none}
+:where(#flick-root) h1,:where(#flick-root) h2,:where(#flick-root) h3,:where(#flick-root) h4,:where(#flick-root) h5,:where(#flick-root) h6{font-weight:revert;line-height:revert;font-family:revert}
+:where(#flick-root) h1 small,:where(#flick-root) h2 small,:where(#flick-root) h3 small,:where(#flick-root) h4 small,:where(#flick-root) h5 small,:where(#flick-root) h6 small{line-height:revert;font-weight:revert;color:revert}
+:where(#flick-root) .lead{font-weight:revert;line-height:revert;font-size:revert;margin-bottom:revert}
+</style>
 <title>더플릭 어바웃 인터랙션</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
