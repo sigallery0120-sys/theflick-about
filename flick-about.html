@@ -86,7 +86,7 @@ html.mq-720 .mark{left:max(18px,env(safe-area-inset-left,0px));top:26px;width:10
 
 /* services: one chapter per screen, text alternates sides */
 .svc-intro{padding-block:0}
-.svc{height:calc(var(--vh) * 230)}
+.svc{height:calc(var(--vh) * 300)} /* 글자가 다 나온 뒤에도 한참 머물도록 (고정 구간 200vh) */
 .svc-stage{position:sticky;top:0;height:calc(var(--vh) * 100);height:calc(var(--vh) * 100);display:grid;align-items:center}
 .svc .inner{width:100%;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:calc(var(--vw) * 4)}
 .svc .copy{min-width:0;max-width:440px}
@@ -115,7 +115,7 @@ html.mq-720 .mark{left:max(18px,env(safe-area-inset-left,0px));top:26px;width:10
 .svc.near h3 .bw,.svc li.on .bw{opacity:1;filter:blur(0);transform:none}
 .svc .bw.x{transition:none}
 
-  html.mq-860 .svc{height:calc(var(--vh) * 240)}
+  html.mq-860 .svc{height:calc(var(--vh) * 310)}
   html.mq-860 .svc-stage{align-items:end;padding-bottom:calc(var(--vh) * 12)}
   html.mq-860 .svc .inner{grid-template-columns:minmax(0,1fr)}
   html.mq-860 .svc.l .copy,html.mq-860 .svc.r .copy{grid-column:1;justify-self:stretch;max-width:none;padding:22px;border-radius:16px;background:var(--panel);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
@@ -1586,11 +1586,11 @@ frame();
       /* 메인 타이틀: 화면이 고정되고 로고가 멈춘 뒤(조금 더 스크롤)에 등장
          서브 타이틀: 그다음 스크롤에 따라 하나씩 */
       const pinned=r.top<=2&&r.bottom>mid;
-      s.classList.toggle('near',pinned&&p>(k===0?.03:.1));
+      s.classList.toggle('near',pinned&&p*Math.max(1,r.height-innerHeight)>innerHeight*(k===0?.039:.13));
       if(pinned&&p>.05&&p<.93) activeMedia=s.dataset.form;
       const items=s.querySelectorAll('li');
-      const n=items.length, gapP=n>1?.3/(n-1):0;
-      items.forEach((li,i)=>li.classList.toggle('on',pinned&&p>.22+i*gapP));
+      const n=items.length, H=r.height-innerHeight, A=x=>x*innerHeight/Math.max(1,H), gapP=n>1?A(.39)/(n-1):0;  /* 등장 타이밍은 화면 높이 기준 고정 거리 → 섹션이 길어진 만큼 다 나온 뒤 머무는 시간이 늘어남 */
+      items.forEach((li,i)=>li.classList.toggle('on',pinned&&p>A(.286)+i*gapP));
       const ul=s.querySelector('ul'); if(ul) ul.classList.toggle('on',inView&&p>.08);
       if(inView){ best=k; }
     });
