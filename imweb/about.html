@@ -235,7 +235,7 @@ html.mq-520 :where(#flick-root) .cards{grid-template-columns:minmax(0,1fr)}
 :where(#flick-root) .grow p .tag:not(.lit){opacity:.08;filter:blur(10px);transform:translateY(6px)}
 
 /* mission: sticky, the three values arrive one by one */
-:where(#flick-root) .mission{position:relative;height:calc(var(--vh) * 300)}
+:where(#flick-root) .mission{position:relative;height:calc(var(--vh) * 220)}   /* 세 단계가 다 켜지면 곧 끝나도록 (빈 스크롤 없앰) */
 :where(#flick-root) .mission-stage{position:sticky;top:0;height:calc(var(--vh) * 100);display:grid;align-content:center}
 :where(#flick-root) .mission .inner{width:100%;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:calc(var(--vw) * 4);align-items:center}
 :where(#flick-root) .mission .col{grid-column:2;min-width:0}
@@ -1297,7 +1297,7 @@ const F={
   design:   {side:-1,y:0,   scale:1.37,  tilt:.28, yaw:.7,   R:4, mat:0, tint:[.94,.95,1],   halo:C(0x9fb0ff), haloA:.08, light:C(0xffffff), li:0},
   glassTop: {side:0, y:1.6, scale:.66, dEdge:.10, dY:.22, dScale:.95, tilt:.34, yaw:-.45, R:5, mat:0, tint:[.94,.95,1],  halo:C(0x9fb0ff), haloA:.08,  light:C(0xffffff), li:0},
   glassBack:{side:0, y:0,   scale:1.35,tilt:.4,  yaw:-.3,  R:6, mat:0, tint:[.94,.95,1],  halo:C(0x9fb0ff), haloA:.08, light:C(0xffffff), li:0},
-  glassSide:{side:-1,y:0,   scale:1.0, tilt:.36, yaw:.6,   R:7, mat:0, tint:[.94,.95,1],  halo:C(0x9fb0ff), haloA:.08,  light:C(0xffffff), li:0},
+  glassSide:{side:-1,y:0,   scale:1.0, dXk:.62, dY:-.05, tilt:.36, yaw:.6,   R:7, mat:0, tint:[.94,.95,1],  halo:C(0x9fb0ff), haloA:.08,  light:C(0xffffff), li:0},
   glassEnd: {side:0, y:.7,  scale:.9,  tilt:.34, yaw:-.45, R:8, idle:1, mat:0, tint:[.94,.95,1], halo:C(0x9fb0ff), haloA:.08, light:C(0xffffff), li:0},
 };
 
@@ -1421,9 +1421,9 @@ function frameBody(){
      기준 화면(휴대폰 390×844 · 태블릿 834×1194)에서는 그대로, 주소창 때문에 화면이 짧은 실제 기기에서도 로고-글자 간격 비율 유지 */
   if(narrow){ const ar=(window.__flickBP==='t')?834/1194:390/844; target.y*=cam.aspect/ar; }
   /* 데스크톱 전용 자리(서비스 한눈에: 오른쪽 위). 앞뒤 구간과는 위치·크기를 이어서 보간 → 다음 구간으로 갈 때 회전하며 내려감 */
-  if(!narrow && (a.dEdge!=null||b.dEdge!=null)){
+  if(!narrow && (a.dEdge!=null||b.dEdge!=null||a.dXk||b.dXk)){
     const sc=f=>(f.dScale!=null?f.dScale:f.scale)*fit;
-    const px=f=>f.dEdge!=null ? vw*(.5-f.dEdge)-1.62*sc(f) : f.side*Math.max(vw*.18, vw*(.5-OUTER)-1.62*sc(f));
+    const px=f=>f.dEdge!=null ? vw*(.5-f.dEdge)-1.62*sc(f) : f.side*Math.max(vw*.18, vw*(.5-OUTER)-1.62*sc(f))*(f.dXk||1);   /* dXk: 화면 안쪽으로 당기는 비율 */
     const py=f=>f.dY!=null ? f.dY*vh : f.y*(1-Math.abs(f.side)*.6);
     target.x=L(px(a),px(b),te);
     target.y=L(py(a),py(b),te) - arc*cross*1.1 - arc*.25*(1-cross);
@@ -1676,7 +1676,7 @@ frame();
     const words=grow.querySelectorAll('.w'); const gp=prog(grow); const lit=Math.round(Math.min(1,Math.max(0,(gp-.16)/.62))*words.length);   /* 글이 위로 올라간 만큼 조금 늦게 시작 */
     words.forEach((w,k)=>w.classList.toggle('lit',k<lit)); tag.classList.toggle('lit',gp>.84);
 
-    const mp=prog(mission); const on=Math.min(steps.length,1+Math.floor(mp*steps.length*1.15));
+    const mp=prog(mission); const on=Math.min(steps.length,1+Math.floor(mp*2.6));
     steps.forEach((s,k)=>s.classList.toggle('on',k<on));
     const last=steps[on-1]; fill.style.height=Math.max(0,last.offsetTop+24-24)+'px';
   }
@@ -1912,7 +1912,7 @@ html.ed-on :where(#flick-root) .ed-gap{display:block}
 <div class="ed-guide v" id="ed-gv" aria-hidden="true"></div>
 <div class="ed-guide hz" id="ed-gh" aria-hidden="true"></div>
 
-<script type="application/json" id="flick-baked">{"v":6,"mat":"optical","thick":1,"bp":{"d":{"added":{},"cg":{},"gaps":{},"groups":{"g-mw38n2u6":[".svc li#3",".svc li#4",".svc li#5",".svc li#6"],"g-svc3":[".svc h3#3",".svc li#11",".svc li#12",".svc li#13",".svc li#14"]},"hts":{"sec0":-126,"sec1":31,"sec6":187},"items":{".card .art#0":{"hide":true},".card .art#1":{"hide":true},".card .art#2":{"hide":true},".card .art#3":{"hide":true},".eyebrow#0":{"fs":10.846,"hide":true,"lh":1.2,"ls":0.055,"t":{"0":""},"x":-764},".eyebrow#1":{"fs":20.062,"ls":0,"t":{"0":""},"w":2080,"y":71},".eyebrow#2":{"fs":16.284,"ls":0,"w":1463,"x":-1239,"y":-284},".grow h2#0":{"fs":1.845,"h":{"0":[["브랜드와\n",0],["함께 성장하는",0,1],[" 더플릭",0]]},"ls":-0.025,"t":{"0":"브랜드와\n함께 성장하는 더플릭"},"ta":"left","w":931,"x":-751,"y":123},".grow p#0":{"fs":1.667,"h":{"0":[["모든",600],[" ",0],["프로젝트는",600],[" ",0],["단순히",600],[" ",0],["콘텐츠",600],[" ",0],["제작을",600],[" ",0],["넘어,\n",600],[" ",0],["브랜드의",600],[" ",0],["장기적인",600],[" ",0],["가치",600],[" ",0],["성장을",600],[" ",0],["목표로",600],[" ",0],["합니다.",600],["\n",0],["우리는",600],[" ",0],["소통과",600],[" ",0],["책임감을",600],[" ",0],["바탕으로",600],[" ",0],["팀원,",600],[" ",0],["고객,",600],[" ",0],["브랜드",600],[" ",0],["모두의",600],[" ",0],["성장을",600],[" ",0],["추구하며,",600],["\n",0],["더",600],[" ",0],["나은",600],[" ",0],["브랜드",600],[" ",0],["경험을",600],[" ",0],["통해",600],[" ",0],["공공과",600],[" ",0],["기업이",600],[" ",0],["함께",600],[" ",0],["빛날",600],[" ",0],["수",600],[" ",0],["있는",600],[" ",0],["미래를",600],[" ",0],["설계합니다.",600]]},"lh":2.1,"ls":-0.025,"t":{"0":"모든 프로젝트는 단순히 콘텐츠 제작을 넘어,\n브랜드의 장기적인 가치 성장을 목표로 합니다. 우리는 소통과 책임감을 바탕으로 팀원, 고객, 브랜드 모두의 성장을 추구하며, 더 나은 브랜드 경험을 통해 공공과 기업이 함께 빛날 수 있는 미래를 설계합니다."},"ta":"left","w":1397,"x":1081,"y":-146},".hero .sub#0":{"fs":1.856,"fw":500,"ls":-0.025,"t":{"0":"2021년 창립 이래, 공공기관, 선거컨설팅, 커머셜 분야에서\n콘텐츠 혁신과 브랜드 경험의 새로운 패러다임을 만들어 오고 있습니다."},"w":957,"x":-19,"y":164},".hero h1#0":{"fs":2.337,"h":{"0":[["주식회사 더플릭",700],["은\n고객의 가치를 창의적으로 재해석 하는\n브랜딩 에이전시 입니다.",600]]},"lh":1.35,"ls":-0.025,"w":1716,"x":-398,"y":121},".step .box#0":{"fs":1.274},".step .box#1":{"fs":1.274},".step .box#2":{"fs":1.2},".step .dot#0":{"fs":1.274},".step .dot#1":{"fs":1.274},".step .dot#2":{"fs":1.274},".step h3#2":{"fs":0.942},".step p#2":{"fs":0.942},".svc .no#0":{"hide":true,"x":-615},".svc .no#1":{"hide":true},".svc .no#2":{"hide":true},".svc .no#3":{"hide":true},".svc h3#0":{"fs":2.789,"ls":-0.025,"w":549,"x":-613,"y":-110},".svc h3#1":{"fs":2.789,"ls":-0.025,"ta":"right","w":549,"x":504,"y":-97},".svc h3#2":{"fs":2.789,"ls":-0.025,"w":578,"x":-613,"y":-97},".svc h3#3":{"fs":2.789,"ls":-0.025,"ta":"right","w":549,"x":504,"y":-97},".svc li#0":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"x":-613,"y":-49},".svc li#1":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"x":-613,"y":-12},".svc li#10":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"x":-613,"y":72},".svc li#11":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"ta":"right","x":613,"y":-36},".svc li#12":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"ta":"right","x":613,"y":1},".svc li#13":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"ta":"right","x":613,"y":36},".svc li#14":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"ta":"right","x":613,"y":72},".svc li#2":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"x":-613,"y":23},".svc li#3":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"ta":"right","x":613,"y":-36},".svc li#4":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"ta":"right","x":613,"y":1},".svc li#5":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"ta":"right","x":613,"y":36},".svc li#6":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"ta":"right","x":613,"y":72},".svc li#7":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"x":-613,"y":-36},".svc li#8":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"x":-613,"y":1},".svc li#9":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"x":-613,"y":36},".grow p#1":{"fs":1.667,"ls":-0.025,"ta":"left","w":1397,"x":1081,"y":-146}},"photo":{}},"m":{"added":{},"cg":{},"gaps":{},"groups":{},"hts":{},"items":{".card .art#0":{"hide":true},".card .art#1":{"hide":true},".card .art#2":{"hide":true},".card .art#3":{"hide":true},".eyebrow#0":{"hide":true,"t":{"0":""}},".grow p#0":{"h":{"0":[["모든",600],[" ",0],["프로젝트는",600],[" ",0],["단순히",600],[" ",0],["콘텐츠",600],[" ",0],["제작을",600],[" ",0],["넘어,",600],[" ",0],["브랜드의",600],[" ",0],["장기적인",600],[" ",0],["가치",600],[" ",0],["성장을",600],[" ",0],["목표로",600],[" ",0],["합니다.\n우리는",600],[" ",0],["소통과",600],[" ",0],["책임감을",600],[" ",0],["바탕으로",600],[" ",0],["팀원,",600],[" ",0],["고객,",600],[" ",0],["브랜드",600],[" ",0],["모두의",600],[" ",0],["성장을",600],[" ",0],["추구하며,\n더",600],[" ",0],["나은",600],[" ",0],["브랜드",600],[" ",0],["경험을",600],[" ",0],["통해",600],[" ",0],["공공과",600],[" ",0],["기업이",600],[" ",0],["함께",600],[" ",0],["빛날",600],[" ",0],["수",600],[" ",0],["있는",600],[" ",0],["미래를",600],[" ",0],["설계합니다.",600]]},"t":{"0":"모든 프로젝트는 단순히 콘텐츠 제작을 넘어, 브랜드의 장기적인 가치 성장을 목표로 합니다.\n우리는 소통과 책임감을 바탕으로 팀원, 고객, 브랜드 모두의 성장을 추구하며,\n더 나은 브랜드 경험을 통해 공공과 기업이 함께 빛날 수 있는 미래를 설계합니다."}},".hero .sub#0":{"fw":500,"t":{"0":"2021년 창립 이래, 공공기관, 선거컨설팅, 커머셜 분야에서\n콘텐츠 혁신과 브랜드 경험의 새로운 패러다임을 만들어 오고 있습니다."}},".hero h1#0":{"h":{"0":[["주식회사 더플릭",700],["은\n고객의 가치를 창의적으로 재해석 하는\n브랜딩 에이전시 입니다.",600]]}},".svc .no#0":{"hide":true},".svc .no#1":{"hide":true},".svc .no#2":{"hide":true},".svc .no#3":{"hide":true},".svc li#0":{"fw":500},".svc li#1":{"fw":500},".svc li#10":{"fw":500},".svc li#11":{"fw":500},".svc li#12":{"fw":500},".svc li#13":{"fw":500},".svc li#14":{"fw":500},".svc li#2":{"fw":500},".svc li#3":{"fw":500},".svc li#4":{"fw":500},".svc li#5":{"fw":500},".svc li#6":{"fw":500},".svc li#7":{"fw":500},".svc li#8":{"fw":500},".svc li#9":{"fw":500}},"photo":{}},"t":{"added":{},"cg":{},"gaps":{},"groups":{},"hts":{},"items":{".card .art#0":{"hide":true},".card .art#1":{"hide":true},".card .art#2":{"hide":true},".card .art#3":{"hide":true},".eyebrow#0":{"hide":true,"t":{"0":""}},".grow p#0":{"h":{"0":[["모든",600],[" ",0],["프로젝트는",600],[" ",0],["단순히",600],[" ",0],["콘텐츠",600],[" ",0],["제작을",600],[" ",0],["넘어,",600],[" ",0],["브랜드의",600],[" ",0],["장기적인",600],[" ",0],["가치",600],[" ",0],["성장을",600],[" ",0],["목표로",600],[" ",0],["합니다.\n우리는",600],[" ",0],["소통과",600],[" ",0],["책임감을",600],[" ",0],["바탕으로",600],[" ",0],["팀원,",600],[" ",0],["고객,",600],[" ",0],["브랜드",600],[" ",0],["모두의",600],[" ",0],["성장을",600],[" ",0],["추구하며,\n더",600],[" ",0],["나은",600],[" ",0],["브랜드",600],[" ",0],["경험을",600],[" ",0],["통해",600],[" ",0],["공공과",600],[" ",0],["기업이",600],[" ",0],["함께",600],[" ",0],["빛날",600],[" ",0],["수",600],[" ",0],["있는",600],[" ",0],["미래를",600],[" ",0],["설계합니다.",600]]},"t":{"0":"모든 프로젝트는 단순히 콘텐츠 제작을 넘어, 브랜드의 장기적인 가치 성장을 목표로 합니다.\n우리는 소통과 책임감을 바탕으로 팀원, 고객, 브랜드 모두의 성장을 추구하며,\n더 나은 브랜드 경험을 통해 공공과 기업이 함께 빛날 수 있는 미래를 설계합니다."}},".hero .sub#0":{"fw":500,"t":{"0":"2021년 창립 이래, 공공기관, 선거컨설팅, 커머셜 분야에서\n콘텐츠 혁신과 브랜드 경험의 새로운 패러다임을 만들어 오고 있습니다."}},".hero h1#0":{"h":{"0":[["주식회사 더플릭",700],["은\n고객의 가치를 창의적으로 재해석 하는\n브랜딩 에이전시 입니다.",600]]}},".svc .no#0":{"hide":true},".svc .no#1":{"hide":true},".svc .no#2":{"hide":true},".svc .no#3":{"hide":true},".svc li#0":{"fw":500},".svc li#1":{"fw":500},".svc li#10":{"fw":500},".svc li#11":{"fw":500},".svc li#12":{"fw":500},".svc li#13":{"fw":500},".svc li#14":{"fw":500},".svc li#2":{"fw":500},".svc li#3":{"fw":500},".svc li#4":{"fw":500},".svc li#5":{"fw":500},".svc li#6":{"fw":500},".svc li#7":{"fw":500},".svc li#8":{"fw":500},".svc li#9":{"fw":500}},"photo":{}}}}</script>
+<script type="application/json" id="flick-baked">{"v":6,"mat":"optical","thick":1,"bp":{"d":{"added":{},"cg":{},"gaps":{},"groups":{"g-mw38n2u6":[".svc li#3",".svc li#4",".svc li#5",".svc li#6"],"g-svc3":[".svc h3#3",".svc li#11",".svc li#12",".svc li#13",".svc li#14"]},"hts":{"sec0":-126,"sec1":31,"sec6":187,"sec8":-90},"items":{".card .art#0":{"hide":true},".card .art#1":{"hide":true},".card .art#2":{"hide":true},".card .art#3":{"hide":true},".eyebrow#0":{"fs":10.846,"hide":true,"lh":1.2,"ls":0.055,"t":{"0":""},"x":-764},".eyebrow#1":{"fs":20.062,"ls":0,"t":{"0":""},"w":2080,"y":71},".eyebrow#2":{"fs":16.284,"ls":0,"w":1463,"x":-1239,"y":-31},".grow h2#0":{"fs":1.893,"h":{"0":[["브랜드와\n",0],["함께 성장하는",0,1],[" 더플릭",0]]},"ls":-0.025,"t":{"0":"브랜드와\n함께 성장하는 더플릭"},"ta":"left","w":931,"x":-748,"y":194},".grow p#0":{"fs":1.667,"h":{"0":[["모든",600],[" ",0],["프로젝트는",600],[" ",0],["단순히",600],[" ",0],["콘텐츠",600],[" ",0],["제작을",600],[" ",0],["넘어,",600],["\n ",0],["브랜드의",600],[" ",0],["장기적인",600],[" ",0],["가치",600],[" ",0],["성장을",600],[" ",0],["목표로",600],[" ",0],["합니다.",600],["\n",0],["우리는",600],[" ",0],["소통과",600],[" ",0],["책임감을",600],[" ",0],["바탕으로",600],[" ",0],["팀원,",600],[" ",0],["고객,",600],[" ",0],["브랜드",600],[" ",0],["모두의",600],[" ",0],["성장을",600],[" ",0],["추구하며,",600],["\n",0],["더",600],[" ",0],["나은",600],[" ",0],["브랜드",600],[" ",0],["경험을",600],[" ",0],["통해",600],[" ",0],["공공과",600],[" ",0],["기업이",600],[" ",0],["함께",600],[" ",0],["빛날",600],[" ",0],["수",600],[" ",0],["있는",600],[" ",0],["미래를",600],[" ",0],["설계합니다.",600]]},"lh":2.1,"ls":-0.025,"ta":"left","w":1397,"x":1094,"y":-146},".grow p#1":{"fs":2.62,"fw":700,"ls":-0.025,"ta":"left","w":1002,"x":975,"y":-158},".hero .sub#0":{"fs":1.856,"fw":500,"ls":-0.025,"t":{"0":"2021년 창립 이래, 공공기관, 선거컨설팅, 커머셜 분야에서\n콘텐츠 혁신과 브랜드 경험의 새로운 패러다임을 만들어 오고 있습니다."},"w":957,"x":-19,"y":164},".hero h1#0":{"fs":2.337,"h":{"0":[["주식회사 더플릭",700],["은\n고객의 가치를 창의적으로 재해석 하는\n브랜딩 에이전시 입니다.",600]]},"lh":1.35,"ls":-0.025,"w":1716,"x":-398,"y":121},".step .box#0":{"fs":1.274},".step .box#1":{"fs":1.274},".step .box#2":{"fs":1.2},".step .dot#0":{"fs":1.274},".step .dot#1":{"fs":1.274},".step .dot#2":{"fs":1.274},".step h3#2":{"fs":0.942},".step p#1":{"t":{"0":"창의적인 아이디어와 차별화된 콘텐츠로\n독창적인 스토리를 담아냅니다."}},".step p#2":{"fs":0.942,"t":{"0":"고객의 목표와 시장의 흐름을 연결하여 브랜드의 장기적인 영향력을\n구축할 수 있는 프로젝트를 기획하고 실행합니다."}},".svc .no#0":{"hide":true,"x":-615},".svc .no#1":{"hide":true},".svc .no#2":{"hide":true},".svc .no#3":{"hide":true},".svc h3#0":{"fs":2.789,"ls":-0.025,"w":549,"x":-613,"y":-110},".svc h3#1":{"fs":2.789,"ls":-0.025,"ta":"right","w":549,"x":504,"y":-97},".svc h3#2":{"fs":2.789,"ls":-0.025,"w":578,"x":-613,"y":-97},".svc h3#3":{"fs":2.789,"ls":-0.025,"ta":"right","w":549,"x":504,"y":-97},".svc li#0":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"x":-613,"y":-49},".svc li#1":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"x":-613,"y":-12},".svc li#10":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"x":-613,"y":72},".svc li#11":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"ta":"right","x":613,"y":-36},".svc li#12":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"ta":"right","x":613,"y":1},".svc li#13":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"ta":"right","x":613,"y":36},".svc li#14":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"ta":"right","x":613,"y":72},".svc li#2":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"x":-613,"y":23},".svc li#3":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"ta":"right","x":613,"y":-36},".svc li#4":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"ta":"right","x":613,"y":1},".svc li#5":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"ta":"right","x":613,"y":36},".svc li#6":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"ta":"right","x":613,"y":72},".svc li#7":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"x":-613,"y":-36},".svc li#8":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"x":-613,"y":1},".svc li#9":{"fs":2.941,"fw":500,"lh":0.7,"ls":-0.025,"x":-613,"y":36}},"photo":{}},"m":{"added":{},"cg":{},"gaps":{},"groups":{},"hts":{},"items":{".card .art#0":{"hide":true},".card .art#1":{"hide":true},".card .art#2":{"hide":true},".card .art#3":{"hide":true},".eyebrow#0":{"hide":true,"t":{"0":""}},".grow p#0":{"h":{"0":[["모든",600],[" ",0],["프로젝트는",600],[" ",0],["단순히",600],[" ",0],["콘텐츠",600],[" ",0],["제작을",600],[" ",0],["넘어,",600],[" ",0],["브랜드의",600],[" ",0],["장기적인",600],[" ",0],["가치",600],[" ",0],["성장을",600],[" ",0],["목표로",600],[" ",0],["합니다.\n우리는",600],[" ",0],["소통과",600],[" ",0],["책임감을",600],[" ",0],["바탕으로",600],[" ",0],["팀원,",600],[" ",0],["고객,",600],[" ",0],["브랜드",600],[" ",0],["모두의",600],[" ",0],["성장을",600],[" ",0],["추구하며,\n더",600],[" ",0],["나은",600],[" ",0],["브랜드",600],[" ",0],["경험을",600],[" ",0],["통해",600],[" ",0],["공공과",600],[" ",0],["기업이",600],[" ",0],["함께",600],[" ",0],["빛날",600],[" ",0],["수",600],[" ",0],["있는",600],[" ",0],["미래를",600],[" ",0],["설계합니다.",600]]},"t":{"0":"모든 프로젝트는 단순히 콘텐츠 제작을 넘어, 브랜드의 장기적인 가치 성장을 목표로 합니다.\n우리는 소통과 책임감을 바탕으로 팀원, 고객, 브랜드 모두의 성장을 추구하며,\n더 나은 브랜드 경험을 통해 공공과 기업이 함께 빛날 수 있는 미래를 설계합니다."}},".hero .sub#0":{"fw":500,"t":{"0":"2021년 창립 이래, 공공기관, 선거컨설팅, 커머셜 분야에서\n콘텐츠 혁신과 브랜드 경험의 새로운 패러다임을 만들어 오고 있습니다."}},".hero h1#0":{"h":{"0":[["주식회사 더플릭",700],["은\n고객의 가치를 창의적으로 재해석 하는\n브랜딩 에이전시 입니다.",600]]}},".svc .no#0":{"hide":true},".svc .no#1":{"hide":true},".svc .no#2":{"hide":true},".svc .no#3":{"hide":true},".svc li#0":{"fw":500},".svc li#1":{"fw":500},".svc li#10":{"fw":500},".svc li#11":{"fw":500},".svc li#12":{"fw":500},".svc li#13":{"fw":500},".svc li#14":{"fw":500},".svc li#2":{"fw":500},".svc li#3":{"fw":500},".svc li#4":{"fw":500},".svc li#5":{"fw":500},".svc li#6":{"fw":500},".svc li#7":{"fw":500},".svc li#8":{"fw":500},".svc li#9":{"fw":500}},"photo":{}},"t":{"added":{},"cg":{},"gaps":{},"groups":{},"hts":{},"items":{".card .art#0":{"hide":true},".card .art#1":{"hide":true},".card .art#2":{"hide":true},".card .art#3":{"hide":true},".eyebrow#0":{"hide":true,"t":{"0":""}},".grow p#0":{"h":{"0":[["모든",600],[" ",0],["프로젝트는",600],[" ",0],["단순히",600],[" ",0],["콘텐츠",600],[" ",0],["제작을",600],[" ",0],["넘어,",600],[" ",0],["브랜드의",600],[" ",0],["장기적인",600],[" ",0],["가치",600],[" ",0],["성장을",600],[" ",0],["목표로",600],[" ",0],["합니다.\n우리는",600],[" ",0],["소통과",600],[" ",0],["책임감을",600],[" ",0],["바탕으로",600],[" ",0],["팀원,",600],[" ",0],["고객,",600],[" ",0],["브랜드",600],[" ",0],["모두의",600],[" ",0],["성장을",600],[" ",0],["추구하며,\n더",600],[" ",0],["나은",600],[" ",0],["브랜드",600],[" ",0],["경험을",600],[" ",0],["통해",600],[" ",0],["공공과",600],[" ",0],["기업이",600],[" ",0],["함께",600],[" ",0],["빛날",600],[" ",0],["수",600],[" ",0],["있는",600],[" ",0],["미래를",600],[" ",0],["설계합니다.",600]]},"t":{"0":"모든 프로젝트는 단순히 콘텐츠 제작을 넘어, 브랜드의 장기적인 가치 성장을 목표로 합니다.\n우리는 소통과 책임감을 바탕으로 팀원, 고객, 브랜드 모두의 성장을 추구하며,\n더 나은 브랜드 경험을 통해 공공과 기업이 함께 빛날 수 있는 미래를 설계합니다."}},".hero .sub#0":{"fw":500,"t":{"0":"2021년 창립 이래, 공공기관, 선거컨설팅, 커머셜 분야에서\n콘텐츠 혁신과 브랜드 경험의 새로운 패러다임을 만들어 오고 있습니다."}},".hero h1#0":{"h":{"0":[["주식회사 더플릭",700],["은\n고객의 가치를 창의적으로 재해석 하는\n브랜딩 에이전시 입니다.",600]]}},".svc .no#0":{"hide":true},".svc .no#1":{"hide":true},".svc .no#2":{"hide":true},".svc .no#3":{"hide":true},".svc li#0":{"fw":500},".svc li#1":{"fw":500},".svc li#10":{"fw":500},".svc li#11":{"fw":500},".svc li#12":{"fw":500},".svc li#13":{"fw":500},".svc li#14":{"fw":500},".svc li#2":{"fw":500},".svc li#3":{"fw":500},".svc li#4":{"fw":500},".svc li#5":{"fw":500},".svc li#6":{"fw":500},".svc li#7":{"fw":500},".svc li#8":{"fw":500},".svc li#9":{"fw":500}},"photo":{}}}}</script>
 <script>
 (function(){
   /* ---------- what can be edited ---------- */
@@ -1927,7 +1927,7 @@ html.ed-on :where(#flick-root) .ed-gap{display:block}
   const groupOf=k=>Object.keys(S.groups||{}).find(g=>S.groups[g].includes(k));
   /* the pieces of text inside an element that can be retyped, and what they said originally */
   /* 일반 글자와 강조 조각(파란 글자 .hl, 굵기 조각)이 섞인 요소: 통째로 한 조각으로 편집 */
-  const isMixed=el=>[...el.childNodes].some(c=>c.nodeType===3&&c.textContent.trim())&&[...el.children].length>0&&[...el.children].every(c=>c.tagName==='BR'||(c.tagName==='SPAN'&&(c.classList.contains('hl')||c.dataset.fw)&&!c.children.length));
+  const isMixed=el=>[...el.childNodes].some(c=>c.nodeType===3&&c.textContent.trim())&&[...el.children].length>0&&[...el.children].every(c=>c.tagName==='BR'||(c.tagName==='SPAN'&&(c.classList.contains('hl')||c.dataset.fw||c.dataset.ls)&&!c.children.length));
   function leaves(root){
     if(!root.children.length||isMixed(root)) return [root];
     const out=[]; root.querySelectorAll('*').forEach(n=>{
@@ -1944,29 +1944,33 @@ html.ed-on :where(#flick-root) .ed-gap{display:block}
   /* 부분 굵기: 글을 [글자, 굵기] 조각 목록으로 저장 (굵기 0 = 원래 굵기) */
   function runsOf(node){
     const out=[]; let any=false;
-    const push=(t,w,h)=>{ if(!t) return; const l=out[out.length-1]; if(l&&l[1]===w&&!!l[2]===!!h) l[0]+=t; else out.push(h?[t,w,1]:[t,w]); };
-    (function walk(n,w,h){ n.childNodes.forEach(c=>{
-      if(c.nodeType===3) push(c.textContent,w,h);
+    /* 조각: [글자, 굵기, 강조(0/1), 자간(em)] — 강조·자간이 없으면 뒤를 생략 */
+    const mk=(t,w,h,ls)=>ls!=null?[t,w,h?1:0,ls]:(h?[t,w,1]:[t,w]);
+    const push=(t,w,h,ls)=>{ if(!t) return; const l=out[out.length-1]; if(l&&l[1]===w&&!!l[2]===!!h&&(l[3]??null)===(ls??null)) l[0]+=t; else out.push(mk(t,w,h,ls)); };
+    (function walk(n,w,h,ls){ n.childNodes.forEach(c=>{
+      if(c.nodeType===3) push(c.textContent,w,h,ls);
       else if(c.nodeType===1){
-        if(c.tagName==='BR'){ push('\n',w,h); return; }
-        if(c.tagName==='DIV'&&c.previousSibling) push('\n',w,h);
+        if(c.tagName==='BR'){ push('\n',w,h,ls); return; }
+        if(c.tagName==='DIV'&&c.previousSibling) push('\n',w,h,ls);
         const hh=h||(c.classList&&c.classList.contains('hl')); if(hh&&!h) any=true;
-        const fw=+c.dataset.fw; if(fw>=100&&fw<=900){ any=true; walk(c,fw,hh); } else walk(c,w,hh);
+        let l2=ls; if(c.dataset&&c.dataset.ls!=null&&c.dataset.ls!==''&&isFinite(+c.dataset.ls)){ l2=+c.dataset.ls; any=true; }
+        const fw=+c.dataset.fw; if(fw>=100&&fw<=900){ any=true; walk(c,fw,hh,l2); } else walk(c,w,hh,l2);
       }
-    }); })(node,0,false);
+    }); })(node,0,false,null);
     return any?out:null;
   }
   function setRuns(node,runs){
     node.textContent='';
-    runs.forEach(([t,w,h])=>{ if(w||h){ const sp=document.createElement('span'); if(h) sp.className='hl'; if(w){ sp.dataset.fw=w; sp.style.fontWeight=w; } sp.textContent=t; node.append(sp); } else node.append(document.createTextNode(t)); });
+    runs.forEach(([t,w,h,ls])=>{ if(w||h||ls!=null){ const sp=document.createElement('span'); if(h) sp.className='hl'; if(w){ sp.dataset.fw=w; sp.style.fontWeight=w; } if(ls!=null){ sp.dataset.ls=ls; sp.style.letterSpacing=ls+'em'; } sp.textContent=t; node.append(sp); } else node.append(document.createTextNode(t)); });
+    node.style.whiteSpace=runs.some(r=>String(r[0]).includes('\n'))?'pre-line':'';
   }
-  const okRuns=x=>Array.isArray(x)&&x.length<=400&&x.every(r=>Array.isArray(r)&&(r.length===2||(r.length===3&&r[2]===1))&&typeof r[0]==='string'&&r[0].length<=4000&&(r[1]===0||(Number.isInteger(r[1])&&r[1]>=100&&r[1]<=900)));
+  const okRuns=x=>Array.isArray(x)&&x.length<=400&&x.every(r=>Array.isArray(r)&&(r.length===2||(r.length===3&&r[2]===1)||(r.length===4&&(r[2]===0||r[2]===1)&&typeof r[3]==='number'&&r[3]>=-.3&&r[3]<=1))&&typeof r[0]==='string'&&r[0].length<=4000&&(r[1]===0||(Number.isInteger(r[1])&&r[1]>=100&&r[1]<=900)));
   function paintWords(n,runs,text){
     const sig=JSON.stringify([runs||null,text]); if(n.dataset.wsig===sig&&n.querySelector('.w')) return;
     n.textContent=''; let first=true;
-    (runs||[[text,0]]).forEach(([t,w])=>{ String(t).split(/(\s+)/).forEach(tok=>{ if(!tok) return;
+    (runs||[[text,0]]).forEach(([t,w,h,ls])=>{ String(t).split(/(\s+)/).forEach(tok=>{ if(!tok) return;
       if(/^\s+$/.test(tok)){ if(tok.includes('\n')) n.append(document.createElement('br')); else n.append(' '); return; }
-      const sp=document.createElement('span'); sp.className='w'; sp.textContent=tok; if(w){ sp.dataset.fw=w; sp.style.fontWeight=w; } n.append(sp); }); });
+      const sp=document.createElement('span'); sp.className='w'; sp.textContent=tok; if(w){ sp.dataset.fw=w; sp.style.fontWeight=w; } if(ls!=null){ sp.dataset.ls=ls; sp.style.letterSpacing=ls+'em'; } n.append(sp); }); });
     n.dataset.wsig=sig; delete n.dataset.edh; dispatchEvent(new Event('scroll'));
   }
   function paint(n,runs,text){
@@ -1974,6 +1978,7 @@ html.ed-on :where(#flick-root) .ed-gap{display:block}
     const sig=runs?JSON.stringify(runs):'';
     if(runs){ if(n.dataset.edh!==sig){ setRuns(n,runs); n.dataset.edh=sig; } return; }
     if(n.dataset.edh!=null||n.textContent!==text){ n.textContent=text; delete n.dataset.edh; }
+    n.style.whiteSpace=String(text).includes('\n')?'pre-line':'';   /* 줄바꿈(Shift+Enter)이 화면에도 보이게 */
   }
   const clone=o=>JSON.parse(JSON.stringify(o));
   const r2=n=>Math.round(n*100)/100, r3=n=>Math.round(n*1000)/1000;
@@ -2085,6 +2090,7 @@ html.ed-on :where(#flick-root) .ed-gap{display:block}
     if(!v) mEls.forEach(m=>m.classList.remove('show'));
     if(typeof window.__flickWords==='function') window.__flickWords(!v);
     on=v; phTick(); showBP(); document.documentElement.classList.toggle('ed-on',on);
+    if(!window.__edNoX){ window.__edNoX=1; addEventListener('scroll',()=>{ if(scrollX) scrollTo(0,scrollY); },{passive:true}); }   /* 편집 중 글이 넘쳐도 화면이 옆으로 밀리지 않게 */
     bToggle.textContent=on?'편집 끝내기':'편집 모드';
     [bAdd,bUndo,bSave,bCopy,bHelp,bMat].forEach(b=>b.hidden=!on); if(typeof applyMat==='function') applyMat(); refreshUnhide();
     help.hidden=!on||!helpOpen; if(!on) select(null);
@@ -2396,7 +2402,9 @@ html.ed-on :where(#flick-root) .ed-gap{display:block}
   /* toolbar inputs */
   [[inFs,'fs'],[inLs,'ls'],[inLh,'lh'],[inW,'w'],[inGp,'gap'],[inHt,'ht'],[inCg,'cg']].forEach(([inp,kind])=>{
     inp.addEventListener('focus',()=>snapshot());
-    inp.addEventListener('input',()=>{ const n=parseFloat(inp.value); if(isFinite(n)){ setProp(kind,kind==='ls'?n/1000:n); markDirty(); } });
+    inp.addEventListener('input',()=>{ const n=parseFloat(inp.value); if(!isFinite(n)) return;
+      if(kind==='ls'&&editing){ if(!lsRange(clamp(n/1000,-.2,1))) say('자간을 바꿀 글자를 먼저 드래그해서 선택하세요 (요소 전체는 편집을 끝낸 뒤)'); return; }
+      setProp(kind,kind==='ls'?n/1000:n); markDirty(); });
     inp.addEventListener('keydown',e=>{ if(e.key==='Enter') inp.blur(); e.stopPropagation(); });
   });
   inCol.addEventListener('focus',()=>snapshot());
@@ -2413,6 +2421,19 @@ html.ed-on :where(#flick-root) .ed-gap{display:block}
   }
   document.addEventListener('selectionchange',()=>{ if(!editing) return; const g=getSelection(); if(g.rangeCount&&editing.contains(g.anchorNode)&&editing.contains(g.focusNode)){ lastRange=g.getRangeAt(0).cloneRange(); if(document.activeElement!==inFw) inFw.value=String(selWeight()); } });
   /* 글 수정 중 드래그로 고른 부분만 굵기 바꾸기 */
+  /* 일부 글자만 자간: 편집 중 드래그한 글자에만 (같은 선택에서 값을 계속 바꾸면 그 조각만 갱신) */
+  let lsSpan=null;
+  function lsRange(v){
+    if(lsSpan&&editing&&editing.contains(lsSpan)&&lastRange&&lsSpan.contains(lastRange.commonAncestorContainer)){ lsSpan.dataset.ls=v; lsSpan.style.letterSpacing=v+'em'; markDirty(); return true; }
+    const r=lastRange; if(!editing||!r||r.collapsed||!editing.contains(r.commonAncestorContainer)) return false;
+    const frag=r.extractContents();
+    frag.querySelectorAll('[data-ls]').forEach(sp=>sp.replaceWith(...sp.childNodes));
+    const sp=document.createElement('span'); sp.dataset.ls=v; sp.style.letterSpacing=v+'em'; sp.append(frag);
+    r.insertNode(sp); lsSpan=sp;
+    editing.querySelectorAll('[data-ls]').forEach(x=>{ if(!x.textContent) x.remove(); });
+    const nr=document.createRange(); nr.selectNodeContents(sp); const g=getSelection(); g.removeAllRanges(); g.addRange(nr); lastRange=nr.cloneRange();
+    markDirty(); say('자간 '+Math.round(v*1000)+'을 드래그한 글자에만 적용했어요'); return true;
+  }
   function weightRange(w){
     const r=lastRange; if(!editing||!r||r.collapsed||!editing.contains(r.commonAncestorContainer)) return false;
     const frag=r.extractContents();
@@ -2465,15 +2486,18 @@ html.ed-on :where(#flick-root) .ed-gap{display:block}
   /* retyping text: a new text box as a whole, or one piece of text inside an existing element */
   function startEdit(node,k,idx){
     editing=node; editKey=k; editIdx=idx;
-    if(node.classList.contains('words')){ const rr=runsOf(node); const t=node.textContent; if(rr) setRuns(node,rr); else node.textContent=t; delete node.dataset.wsig; }
+    if(node.classList.contains('words')){ const rr=runsOf(node); const t=node.innerText; if(rr) setRuns(node,rr); else node.textContent=t; delete node.dataset.wsig; node.style.whiteSpace='pre-line'; }
     node.setAttribute('contenteditable','true'); node.focus();
     const r=document.createRange(); r.selectNodeContents(node); const s2=getSelection(); s2.removeAllRanges(); s2.addRange(r);
     box.hidden=true; say('글을 입력하세요 · 바깥을 누르거나 Esc로 끝내요');
   }
   function finishEdit(){
-    const node=editing; if(!node) return; const k=editKey, idx=editIdx; editing=null;
+    const node=editing; if(!node) return; const k=editKey, idx=editIdx; editing=null; lsSpan=null;
     node.removeAttribute('contenteditable');
-    const t=node.innerText.replace(/\n$/,''), runs=runsOf(node), rj=runs?JSON.stringify(runs):'';
+    const t=node.innerText.replace(/\n$/,''), runs=runsOf(node);
+    if(runs&&runs.length){ const l=runs[runs.length-1]; l[0]=String(l[0]).replace(/\n$/,''); if(!l[0]) runs.pop(); }   /* 끝에 붙는 빈 줄 하나는 버림 */
+    const rj=runs?JSON.stringify(runs):'';
+    if(node.classList.contains('words')) node.style.whiteSpace='';
     if(S.added[k]){ const a=S.added[k];
       if(t!==a.text||rj!==(a.h?JSON.stringify(a.h):'')){ snapshot(); a.text=t; if(runs) a.h=runs; else delete a.h; markDirty(); }
       delete node.dataset.edh; paint(node,a.h||null,a.text);
