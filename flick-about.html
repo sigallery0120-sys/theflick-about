@@ -121,6 +121,10 @@ html.mq-720 .mark{left:max(18px,env(safe-area-inset-left,0px));top:26px;width:10
 .dock{position:fixed;left:50%;bottom:max(22px,calc(env(safe-area-inset-bottom,0px) + 16px));z-index:15;transform:translate(-50%,14px);opacity:0;pointer-events:none;display:flex;align-items:center;gap:14px;padding:10px 16px 10px 18px;border:1px solid var(--faint);border-radius:999px;background:var(--panel);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);transition:opacity .4s,transform .5s cubic-bezier(.2,.7,.2,1);max-width:calc(100% - 32px)}
 .dock.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}
 .dock{display:none!important}   /* 하단 막대 내비게이터 → 왼쪽 원형 내비게이터로 교체 */
+/* 모바일(767px 이하) 전용 */
+html.bp-m .side-nav{display:none!important}                     /* 왼쪽 원형 내비게이터 없음 */
+html.bp-m .svc.l .copy,html.bp-m .svc.r .copy{background:none;backdrop-filter:none;-webkit-backdrop-filter:none;padding:0;border-radius:0}   /* 서비스 글자 뒤 반투명 박스 없음 */
+html.bp-m #stage{z-index:2;background:none!important}           /* 3D 로고가 글자 위로 (글자는 3D 뒤편) · 배경색은 body가 담당 */
 /* 왼쪽 원형 내비게이터: 페이지 전체 구간, 현재 구간은 크고 진한 원 */
 .side-nav{position:fixed;left:max(22px,calc(env(safe-area-inset-left,0px) + 14px));top:50%;transform:translateY(-50%);z-index:16;margin:0;padding:0;list-style:none;display:grid;gap:14px;justify-items:center}
 .side-nav button{all:unset;cursor:pointer;position:relative;width:20px;height:20px;display:grid;place-items:center}
@@ -1765,36 +1769,41 @@ main > section, #services > section, #services > .svc-intro{position:relative}
   let selKeys=[];
   const groupOf=k=>Object.keys(S.groups||{}).find(g=>S.groups[g].includes(k));
   /* the pieces of text inside an element that can be retyped, and what they said originally */
+  /* 일반 글자와 강조 조각(파란 글자 .hl, 굵기 조각)이 섞인 요소: 통째로 한 조각으로 편집 */
+  const isMixed=el=>[...el.childNodes].some(c=>c.nodeType===3&&c.textContent.trim())&&[...el.children].length>0&&[...el.children].every(c=>c.tagName==='BR'||(c.tagName==='SPAN'&&(c.classList.contains('hl')||c.dataset.fw)&&!c.children.length));
   function leaves(root){
-    if(!root.children.length) return [root];
+    if(!root.children.length||isMixed(root)) return [root];
     const out=[]; root.querySelectorAll('*').forEach(n=>{
       if(n.classList.contains('words')){ out.push(n); return; }          /* 단어별로 쪼개진 문단은 통째로 한 조각 */
       if(n.closest('.words')) return;
+      if(isMixed(n)){ out.push(n); return; }
+      if(n.parentElement&&n.parentElement!==root&&isMixed(n.parentElement)) return;
       if(!n.children.length&&!n.closest('svg')&&n.textContent.trim()) out.push(n); });
     return out;
   }
   const BOXK=k=>/^\.card#|^\.step \.box#/.test(k);
   const isBoxy=k=>!!k&&(BOXK(k)||/^\.card \.art#|^\.step \.dot#/.test(k));   /* 박스: 크기·간격만, 글은 안의 제목·본문에서 따로 */
-  const LEAF={}, ORIG={}; Object.entries(els).forEach(([k,el])=>{ LEAF[k]=BOXK(k)?[]:leaves(el); ORIG[k]=LEAF[k].map(n=>n.textContent); });
+  const LEAF={}, ORIG={}, ORIGH={}; Object.entries(els).forEach(([k,el])=>{ LEAF[k]=BOXK(k)?[]:leaves(el); ORIG[k]=LEAF[k].map(n=>n.textContent); ORIGH[k]=LEAF[k].map(n=>runsOf(n)); });
   /* 부분 굵기: 글을 [글자, 굵기] 조각 목록으로 저장 (굵기 0 = 원래 굵기) */
   function runsOf(node){
     const out=[]; let any=false;
-    const push=(t,w)=>{ if(!t) return; const l=out[out.length-1]; if(l&&l[1]===w) l[0]+=t; else out.push([t,w]); };
-    (function walk(n,w){ n.childNodes.forEach(c=>{
-      if(c.nodeType===3) push(c.textContent,w);
+    const push=(t,w,h)=>{ if(!t) return; const l=out[out.length-1]; if(l&&l[1]===w&&!!l[2]===!!h) l[0]+=t; else out.push(h?[t,w,1]:[t,w]); };
+    (function walk(n,w,h){ n.childNodes.forEach(c=>{
+      if(c.nodeType===3) push(c.textContent,w,h);
       else if(c.nodeType===1){
-        if(c.tagName==='BR'){ push('\n',w); return; }
-        if(c.tagName==='DIV'&&c.previousSibling) push('\n',w);
-        const fw=+c.dataset.fw; if(fw>=100&&fw<=900){ any=true; walk(c,fw); } else walk(c,w);
+        if(c.tagName==='BR'){ push('\n',w,h); return; }
+        if(c.tagName==='DIV'&&c.previousSibling) push('\n',w,h);
+        const hh=h||(c.classList&&c.classList.contains('hl')); if(hh&&!h) any=true;
+        const fw=+c.dataset.fw; if(fw>=100&&fw<=900){ any=true; walk(c,fw,hh); } else walk(c,w,hh);
       }
-    }); })(node,0);
+    }); })(node,0,false);
     return any?out:null;
   }
   function setRuns(node,runs){
     node.textContent='';
-    runs.forEach(([t,w])=>{ if(w){ const sp=document.createElement('span'); sp.dataset.fw=w; sp.style.fontWeight=w; sp.textContent=t; node.append(sp); } else node.append(document.createTextNode(t)); });
+    runs.forEach(([t,w,h])=>{ if(w||h){ const sp=document.createElement('span'); if(h) sp.className='hl'; if(w){ sp.dataset.fw=w; sp.style.fontWeight=w; } sp.textContent=t; node.append(sp); } else node.append(document.createTextNode(t)); });
   }
-  const okRuns=x=>Array.isArray(x)&&x.length<=400&&x.every(r=>Array.isArray(r)&&r.length===2&&typeof r[0]==='string'&&r[0].length<=4000&&(r[1]===0||(Number.isInteger(r[1])&&r[1]>=100&&r[1]<=900)));
+  const okRuns=x=>Array.isArray(x)&&x.length<=400&&x.every(r=>Array.isArray(r)&&(r.length===2||(r.length===3&&r[2]===1))&&typeof r[0]==='string'&&r[0].length<=4000&&(r[1]===0||(Number.isInteger(r[1])&&r[1]>=100&&r[1]<=900)));
   function paintWords(n,runs,text){
     const sig=JSON.stringify([runs||null,text]); if(n.dataset.wsig===sig&&n.querySelector('.w')) return;
     n.textContent=''; let first=true;
@@ -1830,7 +1839,7 @@ main > section, #services > section, #services > .svc-intro{position:relative}
     el.style.minHeight=''; el.style.removeProperty('--ed-ht');
     if(v.ht){ if(el.classList.contains('card')) el.style.setProperty('--ed-ht',v.ht+'px'); else el.style.minHeight=v.ht+'px'; }
     el.style.display=v.hide?'none':'';
-    if(ORIG[k]) LEAF[k].forEach((n,i)=>{ if(n===editing) return; const t=v.t&&v.t[i]!=null?v.t[i]:ORIG[k][i]; if(t!=null) paint(n,v.h&&v.h[i]||null,t); });
+    if(ORIG[k]) LEAF[k].forEach((n,i)=>{ if(n===editing) return; const edited=v.t&&v.t[i]!=null; const t=edited?v.t[i]:ORIG[k][i]; if(t!=null) paint(n,(v.h&&v.h[i])||(!edited&&ORIGH[k]&&ORIGH[k][i])||null,t); });
   }
   /* 섹션 높이: 원래 높이에서 몇 px 늘리거나 줄였는지(hts)로 저장, 화면 크기가 바뀌어도 그만큼 유지 */
   const baseH={};
@@ -2303,10 +2312,10 @@ main > section, #services > section, #services > .svc-intro{position:relative}
       delete node.dataset.edh; paint(node,a.h||null,a.text);
     }
     else if(ORIG[k]){
-      const v=item(k), cur=v.t&&v.t[idx]!=null?v.t[idx]:ORIG[k][idx], curH=v.h&&v.h[idx]?JSON.stringify(v.h[idx]):'';
+      const v=item(k), cur=v.t&&v.t[idx]!=null?v.t[idx]:ORIG[k][idx], oh=ORIGH[k]&&ORIGH[k][idx]?JSON.stringify(ORIGH[k][idx]):'', curH=v.h&&v.h[idx]?JSON.stringify(v.h[idx]):(v.t&&v.t[idx]!=null?'':oh);
       if(t!==cur||rj!==curH){ snapshot();
         v.t=v.t||{}; if(t===ORIG[k][idx]) delete v.t[idx]; else v.t[idx]=t; if(!Object.keys(v.t).length) delete v.t;
-        v.h=v.h||{}; if(runs) v.h[idx]=runs; else delete v.h[idx]; if(!Object.keys(v.h).length) delete v.h;
+        v.h=v.h||{}; if(runs&&!(t===ORIG[k][idx]&&rj===oh)) v.h[idx]=runs; else delete v.h[idx]; if(!Object.keys(v.h).length) delete v.h;
         markDirty(); }
       delete node.dataset.edh; applyItem(k);
     }
