@@ -9,6 +9,10 @@ html body,html body#doz_body{background:var(--bg)!important;color:var(--ink)!imp
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..900&family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+KR:wght@100..900&family=Inter:wght@200;700&display=swap">
 <style>
+/* 반응형: 화면 단계(데스크톱/태블릿/모바일)마다 기준 너비가 있고, 본문(main)은 그 기준 화면을 실제 너비에 맞게 비례 확대/축소 */
+:root{--vh:1vh;--vw:1vw}
+main{zoom:var(--k,1);--vh:var(--vh-in,1vh);--vw:var(--vw-in,1vw)}
+
 /* Layout: one fixed WebGL stage (the glass stair logo in space) behind a scrolling column; service chapters alternate sides while the logo crosses over and fills with a different material for each service. */
 :root{
   --bg:#0a0a0a;
@@ -62,8 +66,8 @@ main{position:relative;z-index:1}
 .nav a{text-decoration:none;color:inherit;transition:opacity .2s}
 .nav a:hover{opacity:.7}
 .nav a[aria-current]{font-weight:200}
-@media (max-width:1023px){.mark{left:max(28px,env(safe-area-inset-left,0px));top:30px;width:129px;height:15px}.top nav{right:max(28px,env(safe-area-inset-right,0px));top:29.5px}.nav{gap:28px;font-size:13px}.top{height:80px}}
-@media (max-width:720px){.mark{left:max(18px,env(safe-area-inset-left,0px));top:26px;width:104px;height:12px}.top nav{right:max(18px,env(safe-area-inset-right,0px));top:25px}.nav{gap:14px;font-size:10.5px;line-height:14px}.nav li:nth-child(3){display:none}}
+html.mq-1023 .mark{left:max(28px,env(safe-area-inset-left,0px));top:30px;width:129px;height:15px}html.mq-1023 .top nav{right:max(28px,env(safe-area-inset-right,0px));top:29.5px}html.mq-1023 .nav{gap:28px;font-size:13px}html.mq-1023 .top{height:80px}
+html.mq-720 .mark{left:max(18px,env(safe-area-inset-left,0px));top:26px;width:104px;height:12px}html.mq-720 .top nav{right:max(18px,env(safe-area-inset-right,0px));top:25px}html.mq-720 .nav{gap:14px;font-size:10.5px;line-height:14px}html.mq-720 .nav li:nth-child(3){display:none}
 
 .wrap{padding-left:var(--gut-l);padding-right:var(--gut-r)}
 .inner{max-width:1240px;margin:0 auto}
@@ -72,10 +76,10 @@ main{position:relative;z-index:1}
 
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 /* hero */
-.hero{min-height:100svh;display:grid;align-content:end;padding-block:0 13vh;text-align:center}
+.hero{min-height:calc(var(--vh) * 100);display:grid;align-content:end;padding-block:0 calc(var(--vh) * 13);text-align:center}
 .hero .inner{max-width:900px}
 .gl-over #stage{z-index:2;background:none!important}
-.hero .lead{margin:0;font-family:var(--f-body);font-size:clamp(24px,3.2vw,40px);font-weight:700;line-height:1.45;letter-spacing:-.025em;text-wrap:balance;animation:heroIn 1s .3s cubic-bezier(.2,.7,.2,1) both}
+.hero .lead{margin:0;font-family:var(--f-body);font-size:clamp(24px,calc(var(--vw) * 3.2),40px);font-weight:700;line-height:1.45;letter-spacing:-.025em;text-wrap:balance;animation:heroIn 1s .3s cubic-bezier(.2,.7,.2,1) both}
 .hero .sub{margin:22px auto 0;max-width:34em;color:var(--dim);font-size:17px;text-wrap:balance;animation:heroIn 1s .5s cubic-bezier(.2,.7,.2,1) both}
 @keyframes heroIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
 @keyframes chIn{from{opacity:0;transform:translateY(.4em);filter:blur(6px)}to{opacity:1;transform:none;filter:none}}
@@ -87,19 +91,19 @@ main{position:relative;z-index:1}
 
 /* services: one chapter per screen, text alternates sides */
 .svc-intro{padding-block:0}
-.svc{height:230vh}
-.svc-stage{position:sticky;top:0;height:100vh;height:100svh;display:grid;align-items:center}
-.svc .inner{width:100%;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:4vw}
+.svc{height:calc(var(--vh) * 230)}
+.svc-stage{position:sticky;top:0;height:calc(var(--vh) * 100);height:calc(var(--vh) * 100);display:grid;align-items:center}
+.svc .inner{width:100%;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:calc(var(--vw) * 4)}
 .svc .copy{min-width:0;max-width:440px}
 .svc.l .copy{grid-column:1;justify-self:center;width:100%}
 .svc.r .copy{grid-column:2;justify-self:center;width:100%}
-.svc .no{display:block;margin:0 0 18px;font-family:var(--f-display);font-stretch:125%;font-weight:800;font-size:clamp(72px,11vw,150px);line-height:.85;color:transparent;-webkit-text-stroke:1px rgba(195,205,255,.3);font-variant-numeric:tabular-nums}
-.svc h3{margin:0;font-weight:700;font-size:clamp(40px,5.6vw,76px);line-height:1.05;letter-spacing:-.03em}
+.svc .no{display:block;margin:0 0 18px;font-family:var(--f-display);font-stretch:125%;font-weight:800;font-size:clamp(72px,calc(var(--vw) * 11),150px);line-height:.85;color:transparent;-webkit-text-stroke:1px rgba(195,205,255,.3);font-variant-numeric:tabular-nums}
+.svc h3{margin:0;font-weight:700;font-size:clamp(40px,calc(var(--vw) * 5.6),76px);line-height:1.05;letter-spacing:-.03em}
 .svc ul{margin:28px 0 0;padding:0;list-style:none;display:grid;gap:0}
 .svc li{padding:13px 0;font-size:17px;opacity:0;transform:translateY(-14px);transition:opacity .8s ease,transform .9s cubic-bezier(.2,.7,.2,1)}
 .svc li.on{opacity:1;transform:none}
 /* 서비스 섹션: 로고가 멈추면 그 순간의 3D 실루엣 모양으로 작업 사진이 보임 (실패 시 SVG 로고 모양) */
-#svc-cut{position:fixed;left:0;top:0;width:100vw;height:100vh;z-index:1;pointer-events:none;opacity:0;will-change:transform,opacity}
+#svc-cut{position:fixed;left:0;top:0;width:calc(var(--vw) * 100);height:calc(var(--vh) * 100);z-index:1;pointer-events:none;opacity:0;will-change:transform,opacity}
 #svc-media{position:fixed;z-index:1;pointer-events:none;opacity:0;transform-origin:50% 50%;background:center/cover no-repeat;
   -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 843.68 899.46'%3E%3Cpath d='M833.61,60.91L11.68.03c-2.94-.23-5.99.82-8.21,2.89C1.26,4.96,0,7.85,0,10.88v849.48c0,5.55,4.21,10.22,9.74,10.82l267.87,28.23c.37.03.75.05,1.13.05,2.68,0,5.27-.99,7.28-2.8,2.29-2.04,3.6-4.98,3.6-8.07v-281.3l276.79,29.17c.38.03.76.06,1.15.06,2.68,0,5.27-.99,7.28-2.8,2.29-2.04,3.6-4.98,3.6-8.07v-132.58s0-.01,0-.01c0,0,0,0,0-.01v-155.21l253.24,26.68c.37.03.75.06,1.13.06,2.68,0,5.27-.99,7.28-2.8,2.29-2.04,3.6-4.98,3.6-8.07V71.76c0-5.69-4.39-10.42-10.07-10.85ZM556.68,613.56l-228.99-24.12,228.99-80.98v105.11ZM821.93,341.61l-203.17-21.41,73.76-24.49,129.41-42.96v88.86Z'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 843.68 899.46'%3E%3Cpath d='M833.61,60.91L11.68.03c-2.94-.23-5.99.82-8.21,2.89C1.26,4.96,0,7.85,0,10.88v849.48c0,5.55,4.21,10.22,9.74,10.82l267.87,28.23c.37.03.75.05,1.13.05,2.68,0,5.27-.99,7.28-2.8,2.29-2.04,3.6-4.98,3.6-8.07v-281.3l276.79,29.17c.38.03.76.06,1.15.06,2.68,0,5.27-.99,7.28-2.8,2.29-2.04,3.6-4.98,3.6-8.07v-132.58s0-.01,0-.01c0,0,0,0,0-.01v-155.21l253.24,26.68c.37.03.75.06,1.13.06,2.68,0,5.27-.99,7.28-2.8,2.29-2.04,3.6-4.98,3.6-8.07V71.76c0-5.69-4.39-10.42-10.07-10.85ZM556.68,613.56l-228.99-24.12,228.99-80.98v105.11ZM821.93,341.61l-203.17-21.41,73.76-24.49,129.41-42.96v88.86Z'/%3E%3C/svg%3E") center/contain no-repeat;will-change:transform,opacity}
 /* 오른쪽 섹션(미디어·디자인): 서브타이틀은 메인 타이틀 글자의 시작선에 맞춰 왼쪽 정렬 */
@@ -109,14 +113,14 @@ main{position:relative;z-index:1}
 .svc.r:not(.near) .copy>*{transform:translateX(36px)}
 .svc:not(.near) .copy>*{opacity:0;filter:blur(8px)}
 .svc.near .copy>*:nth-child(2){transition-delay:.07s}.svc.near .copy>*:nth-child(3){transition-delay:.14s}
-@media (max-width:860px){
-  .svc{height:240vh}
-  .svc-stage{align-items:end;padding-bottom:12vh}
-  .svc .inner{grid-template-columns:minmax(0,1fr)}
-  .svc.l .copy,.svc.r .copy{grid-column:1;justify-self:stretch;max-width:none;padding:22px;border-radius:16px;background:var(--panel);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
-  .svc .no{font-size:60px;margin-bottom:10px}
-  .svc li{font-size:15px;padding:10px 0}
-}
+
+  html.mq-860 .svc{height:calc(var(--vh) * 240)}
+  html.mq-860 .svc-stage{align-items:end;padding-bottom:calc(var(--vh) * 12)}
+  html.mq-860 .svc .inner{grid-template-columns:minmax(0,1fr)}
+  html.mq-860 .svc.l .copy,html.mq-860 .svc.r .copy{grid-column:1;justify-self:stretch;max-width:none;padding:22px;border-radius:16px;background:var(--panel);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+  html.mq-860 .svc .no{font-size:60px;margin-bottom:10px}
+  html.mq-860 .svc li{font-size:15px;padding:10px 0}
+
 
 /* floating service index */
 .dock{position:fixed;left:50%;bottom:max(22px,calc(env(safe-area-inset-bottom,0px) + 16px));z-index:15;transform:translate(-50%,14px);opacity:0;pointer-events:none;display:flex;align-items:center;gap:14px;padding:10px 16px 10px 18px;border:1px solid var(--faint);border-radius:999px;background:var(--panel);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);transition:opacity .4s,transform .5s cubic-bezier(.2,.7,.2,1);max-width:calc(100% - 32px)}
@@ -134,7 +138,7 @@ main{position:relative;z-index:1}
 :root{--sn-on:#0c0d11;--sn-dot:rgba(20,20,30,.08);--sn-hover:rgba(20,20,30,.22)}
 html:not(.light) .side-nav{--sn-on:#ffffff;--sn-dot:rgba(255,255,255,.12);--sn-hover:rgba(255,255,255,.34)}   /* 밝은 바탕: 검정 · 검은 바탕: 흰색, 나머지 점은 연한 회색 */
 .ed-on .side-nav{opacity:.35}
-@media (max-width:720px){.side-nav{left:max(8px,env(safe-area-inset-left,0px));gap:10px}.side-nav button{width:16px;height:16px}.side-nav button i{width:6px;height:6px}.side-nav button[aria-current="true"] i{width:11px;height:11px}.side-nav button span{display:none}}
+html.mq-720 .side-nav{left:max(8px,env(safe-area-inset-left,0px));gap:10px}html.mq-720 .side-nav button{width:16px;height:16px}html.mq-720 .side-nav button i{width:6px;height:6px}html.mq-720 .side-nav button[aria-current="true"] i{width:11px;height:11px}html.mq-720 .side-nav button span{display:none}
 .dock .name{font-weight:700;font-size:13px;white-space:nowrap;min-width:3.5em}
 .dock .num{font-family:var(--f-mono);font-size:12px;color:var(--glass);font-variant-numeric:tabular-nums}
 .dock ol{display:flex;gap:2px;margin:0;padding:0;list-style:none}
@@ -144,9 +148,9 @@ html:not(.light) .side-nav{--sn-on:#ffffff;--sn-dot:rgba(255,255,255,.12);--sn-h
 .dock button:focus-visible{outline:2px solid var(--glass);outline-offset:1px;border-radius:4px}
 
 /* recap: all four services at once, as cards */
-.recap{padding-block:34vh 16vh}
+.recap{padding-block:calc(var(--vh) * 34) calc(var(--vh) * 16)}
 .recap .lead{max-width:1240px;margin:0 auto}
-.cards{list-style:none;padding:0;margin:clamp(36px,6vh,64px) auto 0;max-width:1240px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.cards{list-style:none;padding:0;margin:clamp(36px,calc(var(--vh) * 6),64px) auto 0;max-width:1240px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
 .card{min-width:0;display:grid;grid-template-rows:auto auto 1fr;gap:18px;padding:24px 22px 26px;border:1px solid var(--faint);border-radius:22px;background:linear-gradient(165deg,var(--card-a),var(--panel) 55%);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);transition:transform .45s cubic-bezier(.2,.7,.2,1),border-color .3s}
 .card:hover{transform:translateY(-8px);border-color:rgba(195,205,255,.35)}
 /* 스크롤 접힘: 카드가 화면 위쪽으로 올라가면 제목만 남고 이미지·목록이 접힘 (--c 0 → 1, 스크롤에 연동) */
@@ -160,15 +164,15 @@ html:not(.light) .side-nav{--sn-on:#ffffff;--sn-dot:rgba(255,255,255,.12);--sn-h
 .card svg{width:58%;height:auto}
 .card h3{margin:0;font-weight:700;font-size:24px;letter-spacing:-.02em}
 .card ul{margin:0;padding:0;list-style:none;display:grid;gap:6px;font-size:14.5px;color:var(--dim)}
-@media (max-width:980px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media (max-width:520px){.cards{grid-template-columns:minmax(0,1fr)}}
+html.mq-980 .cards{grid-template-columns:repeat(2,minmax(0,1fr))}
+html.mq-520 .cards{grid-template-columns:minmax(0,1fr)}
 
 /* growth statement: sticky, words light up */
-.grow{position:relative;height:260vh}
-.grow-stage{position:sticky;top:0;height:100svh;display:grid;align-content:center;text-align:center}
-.grow h2{margin:0;font-weight:700;font-size:clamp(32px,5.4vw,72px);line-height:1.25;letter-spacing:-.035em;text-wrap:balance}
+.grow{position:relative;height:calc(var(--vh) * 260)}
+.grow-stage{position:sticky;top:0;height:calc(var(--vh) * 100);display:grid;align-content:center;text-align:center}
+.grow h2{margin:0;font-weight:700;font-size:clamp(32px,calc(var(--vw) * 5.4),72px);line-height:1.25;letter-spacing:-.035em;text-wrap:balance}
 .grow h2 .hl{color:var(--blue)}
-.grow p{margin:30px auto 0;max-width:36em;font-size:clamp(15px,1.4vw,18px);line-height:1.9}
+.grow p{margin:30px auto 0;max-width:36em;font-size:clamp(15px,calc(var(--vw) * 1.4),18px);line-height:1.9}
 .grow p .w{display:inline-block;opacity:.08;filter:blur(10px);transform:translateY(4px);transition:opacity .7s ease,filter .7s ease,transform .7s cubic-bezier(.2,.7,.2,1)}
 .grow p .w.lit{opacity:1;filter:none;transform:none}
 .grow p .tag{display:inline-block;margin-top:10px;padding:2px 8px;font-weight:700;background:var(--blue);color:#fff;transition:opacity .4s,transform .5s}
@@ -176,9 +180,9 @@ html:not(.light) .side-nav{--sn-on:#ffffff;--sn-dot:rgba(255,255,255,.12);--sn-h
 .grow p .tag:not(.lit){opacity:.08;filter:blur(10px);transform:translateY(6px)}
 
 /* mission: sticky, the three values arrive one by one */
-.mission{position:relative;height:300vh}
-.mission-stage{position:sticky;top:0;height:100svh;display:grid;align-content:center}
-.mission .inner{width:100%;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:4vw;align-items:center}
+.mission{position:relative;height:calc(var(--vh) * 300)}
+.mission-stage{position:sticky;top:0;height:calc(var(--vh) * 100);display:grid;align-content:center}
+.mission .inner{width:100%;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:calc(var(--vw) * 4);align-items:center}
 .mission .col{grid-column:2;min-width:0}
 .mission h2{margin:0}
 .steps{list-style:none;margin:30px 0 0;padding:0;position:relative;display:grid;gap:18px}
@@ -194,10 +198,10 @@ html:not(.light) .side-nav{--sn-on:#ffffff;--sn-dot:rgba(255,255,255,.12);--sn-h
 .step h3 span{color:var(--blue)}
 .step h3 small{font-family:var(--f-display);font-weight:600;font-size:.737em;margin-left:8px;color:var(--ink)}
 .step p{margin:.5em 0 0;font-size:.9375em;color:var(--dim);line-height:1.7}
-@media (max-width:860px){.mission .inner{grid-template-columns:minmax(0,1fr)}.mission .col{grid-column:1}.mission-stage{align-content:end;padding-bottom:10vh}}
+html.mq-860 .mission .inner{grid-template-columns:minmax(0,1fr)}html.mq-860 .mission .col{grid-column:1}html.mq-860 .mission-stage{align-content:end;padding-bottom:calc(var(--vh) * 10)}
 
 /* contact */
-.contact{min-height:80svh;display:grid;align-content:end;padding-block:0 max(64px,calc(env(safe-area-inset-bottom,0px) + 48px));text-align:center}
+.contact{min-height:calc(var(--vh) * 80);display:grid;align-content:end;padding-block:0 max(64px,calc(env(safe-area-inset-bottom,0px) + 48px));text-align:center}
 .reach{display:flex;flex-wrap:wrap;justify-content:center;gap:12px 28px;margin:24px 0 0;font-family:var(--f-mono);font-size:16px}
 .reach span{user-select:all}
 .copybtn{all:unset;cursor:pointer;font-family:var(--f-mono);font-size:12px;letter-spacing:.12em;padding:8px 16px;border:1px solid var(--faint);border-radius:999px;transition:background .2s}
@@ -218,6 +222,29 @@ html:not(.light) .side-nav{--sn-on:#ffffff;--sn-dot:rgba(255,255,255,.12);--sn-h
 </style>
 <script>document.documentElement.classList.add('light')</script>
 
+<script>
+/* 반응형 기준: 데스크톱(1024 이상)·태블릿(768~1023)·모바일(767 이하).
+   각 단계는 기준 너비(데스크톱 3200 · 태블릿 834 · 모바일 390) 화면으로 그려진 뒤, 실제 너비에 맞춰 같은 비율로 확대/축소됨 */
+(function(){
+  const de=document.documentElement, REF={d:3200,t:834,m:390}, MQ={d:[],t:[1023,980,860],m:[1023,980,860,720,520]};
+  const ALLMQ=[1023,980,860,720,520];
+  const probe=document.createElement('div');
+  probe.style.cssText='position:fixed;left:-10px;top:0;width:1px;height:100svh;visibility:hidden;pointer-events:none';
+  function upd(){
+    if(!probe.isConnected) (document.body||de).appendChild(probe);
+    const w=innerWidth||de.clientWidth||1, bp=w>=1024?'d':w>=768?'t':'m', k=w/REF[bp];
+    const sv=probe.offsetHeight||innerHeight;
+    de.style.setProperty('--k',k.toFixed(5));
+    de.style.setProperty('--vh-in',(sv/100/k).toFixed(4)+'px');
+    de.style.setProperty('--vw-in',(REF[bp]/100)+'px');
+    ['d','t','m'].forEach(b=>de.classList.toggle('bp-'+b,b===bp));
+    ALLMQ.forEach(n=>de.classList.toggle('mq-'+n,MQ[bp].includes(n)));
+    window.__flickBP=bp; window.__flickK=k; window.__flickRefW=REF[bp];
+  }
+  upd(); addEventListener('resize',upd);
+  window.__flickBPUpdate=upd;
+})();
+</script>
 <div id="stage" aria-hidden="true"></div>
 <svg id="flat-logo" viewBox="0 0 843.68 899.46" aria-hidden="true" style="position:fixed;z-index:1;pointer-events:none;left:0;top:0;width:10px;height:10px;transform-origin:50% 50%;will-change:transform,opacity,filter"><path fill="currentColor" d="M833.61,60.91L11.68.03c-2.94-.23-5.99.82-8.21,2.89C1.26,4.96,0,7.85,0,10.88v849.48c0,5.55,4.21,10.22,9.74,10.82l267.87,28.23c.37.03.75.05,1.13.05,2.68,0,5.27-.99,7.28-2.8,2.29-2.04,3.6-4.98,3.6-8.07v-281.3l276.79,29.17c.38.03.76.06,1.15.06,2.68,0,5.27-.99,7.28-2.8,2.29-2.04,3.6-4.98,3.6-8.07v-132.58s0-.01,0-.01c0,0,0,0,0-.01v-155.21l253.24,26.68c.37.03.75.06,1.13.06,2.68,0,5.27-.99,7.28-2.8,2.29-2.04,3.6-4.98,3.6-8.07V71.76c0-5.69-4.39-10.42-10.07-10.85ZM556.68,613.56l-228.99-24.12,228.99-80.98v105.11ZM821.93,341.61l-203.17-21.41,73.76-24.49,129.41-42.96v88.86Z"/></svg>
 <script>
@@ -739,7 +766,7 @@ function drawHeroText(){
     const dim=!!el.closest('.sub');
     const walker=document.createTreeWalker(el,NodeFilter.SHOW_TEXT);
     let t; while((t=walker.nextNode())){
-      const cs=getComputedStyle(t.parentElement), font=cs.fontStyle+' '+cs.fontWeight+' '+cs.fontSize+' '+cs.fontFamily;
+      const cs=getComputedStyle(t.parentElement), font=cs.fontStyle+' '+cs.fontWeight+' '+(parseFloat(cs.fontSize)*(window.__flickK||1))+'px '+cs.fontFamily;
       for(let i=0;i<t.length;i++){
         const ch=t.data[i]; if(/\s/.test(ch)) continue;
         rg.setStart(t,i); rg.setEnd(t,i+1); const r=rg.getClientRects()[0]; if(!r||!r.width) continue;
@@ -1587,6 +1614,8 @@ main > section, #services > section, #services > .svc-intro{position:relative}
 .ed-on [contenteditable="true"],.ed-on [contenteditable="true"] *{cursor:text!important}
 .ed-on .reveal{animation:none!important}
 .ed-on .svc li{opacity:1!important;transform:none!important}
+#ed-bp{padding:4px 9px;border-radius:8px;background:rgba(47,107,255,.14);color:#2f6bff;font:600 12px/1.3 var(--f-body);white-space:nowrap}
+#ed-photo[hidden]{display:none!important}
 #ed-photo{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:max(16px,calc(env(safe-area-inset-bottom,0px) + 12px));z-index:61;display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;max-width:min(560px,calc(100% - 32px));padding:8px 10px;border:1px solid rgba(255,255,255,.14);border-radius:14px;background:rgba(18,19,24,.92);color:#eef0f6;font:500 12px/1.3 var(--f-body);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
 #ed-photo b{font-size:12px}
 #ed-photo label{display:flex;align-items:center;gap:4px;padding:3px 6px;border-radius:8px;background:rgba(255,255,255,.06)}
@@ -1615,7 +1644,7 @@ main > section, #services > section, #services > .svc-intro{position:relative}
 #ed-box:not(.boxy) .h.hb{display:none}
 #ed-box .h.wl{left:-6px;top:50%;margin-top:-10px;height:20px;width:10px;cursor:ew-resize;border-radius:5px}
 
-#ed-props{position:fixed;z-index:62;display:flex;flex-wrap:wrap;align-items:center;gap:2px;padding:5px;border:1px solid rgba(120,180,255,.4);border-radius:12px;background:rgba(9,11,22,.94);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);font-family:var(--f-body);font-size:12px;color:var(--ink);max-width:calc(100vw - 32px)}
+#ed-props{position:fixed;z-index:62;display:flex;flex-wrap:wrap;align-items:center;gap:2px;padding:5px;border:1px solid rgba(120,180,255,.4);border-radius:12px;background:rgba(9,11,22,.94);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);font-family:var(--f-body);font-size:12px;color:var(--ink);max-width:calc(calc(var(--vw) * 100) - 32px)}
 #ed-props .f{display:flex;align-items:center;gap:2px;padding:2px 4px 2px 8px;border-radius:8px;background:rgba(255,255,255,.04)}
 #ed-props .f span{cursor:ew-resize;user-select:none;color:var(--dim);padding:6px 2px;touch-action:none}
 #ed-props .f span:hover{color:var(--ink)}
@@ -1675,6 +1704,7 @@ main > section, #services > section, #services > .svc-intro{position:relative}
 </div>
 <div id="ed-bar" hidden>
   <button type="button" id="ed-toggle" class="primary">편집 모드</button>
+  <span id="ed-bp" hidden title="화면 너비에 따라 데스크톱(1024px 이상)·태블릿(768~1023px)·모바일(767px 이하) 편집값이 따로 저장돼요"></span>
   <button type="button" id="ed-add" hidden>＋ 텍스트</button>
   <button type="button" id="ed-undo" hidden>되돌리기</button>
   <button type="button" id="ed-unhide" hidden>지운 요소 복원</button>
@@ -1793,6 +1823,7 @@ main > section, #services > section, #services > .svc-intro{position:relative}
   const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
   const FAM={pre:'var(--f-body)',arc:'"Archivo",var(--f-body)',mono:'var(--f-mono)'};
 
+  const KZ=()=>window.__flickK||1;   /* 화면 1px = 기준 화면 1/KZ px */
   function applyItem(k){
     const el=els[k]; if(!el) return; const v=S.items[k]||{};
     el.style.translate=(v.x||v.y)?`${v.x||0}px ${v.y||0}px`:'';
@@ -1816,7 +1847,7 @@ main > section, #services > section, #services > .svc-intro{position:relative}
     const el=secs[k]; if(!el) return;
     el.style.marginBottom=S.gaps[k]?S.gaps[k]+'px':'';
     el.style.height=''; el.style.minHeight='';
-    baseH[k]=el.getBoundingClientRect().height;
+    baseH[k]=el.offsetHeight;   /* 기준 화면 단위 */
     const d=(S.hts&&S.hts[k])||0;
     if(d){ el.style.minHeight='0'; el.style.height=Math.max(40,Math.round(baseH[k]+d))+'px'; }
   }
@@ -1838,7 +1869,15 @@ main > section, #services > section, #services > .svc-intro{position:relative}
   function applyCg(){ Object.entries(CG).forEach(([g,el])=>{ if(!el) return; const v=S.cg&&S.cg[g]; el.style.gap=(typeof v==='number')?v+'px':''; }); dispatchEvent(new Event('flick-cards')); }
   function applyPhoto(){ window.__flickPhotoAdj=clone(S.photo||{}); }
   function applyAll(){ if(typeof applyMat==='function') applyMat(); syncAdded(); applyCg(); applyPhoto(); Object.keys(els).forEach(applyItem); Object.keys(secs).forEach(applyGap); refreshUnhide(); }
-  let rz; addEventListener('resize',()=>{ clearTimeout(rz); rz=setTimeout(()=>{ applyAll(); fillProps(); },150); });
+  function showBP(){ const el=$('ed-bp'); if(!el) return; el.hidden=!on; el.textContent=BPN[curBP]+' 편집 중 · 기준 '+(window.__flickRefW||'')+'px'; }
+  function switchBP(){
+    const nb=window.__flickBP||'d'; if(nb===curBP) return false;
+    if(editing) finishEdit&&finishEdit();
+    ALLBP[curBP]=S; const keep={mat:S.mat,thick:S.thick}; curBP=nb;
+    S=Object.assign(ALLBP[nb]||emptySet(),keep); ALLBP[nb]=S; hist=[]; select(null);
+    if(typeof showBP==='function') showBP(); return true;
+  }
+  let rz; addEventListener('resize',()=>{ clearTimeout(rz); rz=setTimeout(()=>{ switchBP(); applyAll(); fillProps(); },150); });
 
   /* ---------- UI ---------- */
   const $=id=>document.getElementById(id);
@@ -1855,14 +1894,14 @@ main > section, #services > section, #services > .svc-intro{position:relative}
     const vert=(Math.max(...tops)-Math.min(...tops))>=(Math.max(...lefts)-Math.min(...lefts));
     list.sort((a,b)=>vert?a.r.top-b.r.top:a.r.left-b.r.left);
     const gs=list.slice(1).map((o,i)=>vert?o.r.top-list[i].r.bottom:o.r.left-list[i].r.right);
-    return {list,vert,gap:gs.reduce((a,b)=>a+b,0)/gs.length};
+    return {list,vert,gap:gs.reduce((a,b)=>a+b,0)/gs.length/KZ()};
   }
   /* 첫 번째는 그대로 두고 나머지를 같은 간격으로 다시 줄 세움 */
   function setGap(g){
     const info=stackInfo(); if(!info) return; g=Math.round(clamp(g,-200,1000));
     for(let i=1;i<info.list.length;i++){
       const prev=els[info.list[i-1].q].getBoundingClientRect(), q=info.list[i].q, cur=els[q].getBoundingClientRect(), v=item(q);
-      if(info.vert) v.y=Math.round((v.y||0)+(prev.bottom+g-cur.top)); else v.x=Math.round((v.x||0)+(prev.right+g-cur.left));
+      const kz=KZ(); if(info.vert) v.y=Math.round((v.y||0)+(prev.bottom+g*kz-cur.top)/kz); else v.x=Math.round((v.x||0)+(prev.right+g*kz-cur.left)/kz);
       applyItem(q);
     }
   }
@@ -1887,7 +1926,7 @@ main > section, #services > section, #services > .svc-intro{position:relative}
   function setOn(v){
     if(!v&&editing) finishEdit();
     if(!v) mEls.forEach(m=>m.classList.remove('show'));
-    on=v; phTick(); document.documentElement.classList.toggle('ed-on',on);
+    on=v; phTick(); showBP(); document.documentElement.classList.toggle('ed-on',on);
     bToggle.textContent=on?'편집 끝내기':'편집 모드';
     [bAdd,bUndo,bSave,bCopy,bHelp,bMat].forEach(b=>b.hidden=!on); if(typeof applyMat==='function') applyMat(); refreshUnhide();
     help.hidden=!on||!helpOpen; if(!on) select(null);
@@ -1957,7 +1996,7 @@ main > section, #services > section, #services > .svc-intro{position:relative}
   /* current values of the selected element, as the viewer sees them */
   function metrics(k){
     const el=els[k], cs=getComputedStyle(el), fs=parseFloat(cs.fontSize);
-    return { fs, ls: cs.letterSpacing==='normal'?0:parseFloat(cs.letterSpacing)/fs, lh: cs.lineHeight==='normal'?1.2:parseFloat(cs.lineHeight)/fs, w: el.getBoundingClientRect().width, ht: el.getBoundingClientRect().height, ta: cs.textAlign, fw: clamp(Math.round(parseFloat(cs.fontWeight)/100)*100,100,900), ff: /Plex Mono/.test(cs.fontFamily.split(',')[0])?'mono':/^"?Archivo/.test(cs.fontFamily)?'arc':'pre' };
+    return { fs, ls: cs.letterSpacing==='normal'?0:parseFloat(cs.letterSpacing)/fs, lh: cs.lineHeight==='normal'?1.2:parseFloat(cs.lineHeight)/fs, w: el.getBoundingClientRect().width/KZ(), ht: el.getBoundingClientRect().height/KZ(), ta: cs.textAlign, fw: clamp(Math.round(parseFloat(cs.fontWeight)/100)*100,100,900), ff: /Plex Mono/.test(cs.fontFamily.split(',')[0])?'mono':/^"?Archivo/.test(cs.fontFamily)?'arc':'pre' };
   }
   function fillProps(){
     if(!sel) return; const m=metrics(sel);
@@ -2025,7 +2064,7 @@ main > section, #services > section, #services > .svc-intro{position:relative}
     m.className='ed-m show '+(vert?'v':'hz');
     if(vert) Object.assign(m.style,{left:Math.round(at)+'px',top:lo+'px',height:(hi-lo)+'px',width:''});
     else Object.assign(m.style,{top:Math.round(at)+'px',left:lo+'px',width:(hi-lo)+'px',height:''});
-    m.firstChild.textContent=Math.round(dist)+'px';
+    m.firstChild.textContent=Math.round(dist/KZ())+'px';
   }
   function drawMeasure(){
     const el=sel&&els[sel];
@@ -2123,7 +2162,7 @@ main > section, #services > section, #services > .svc-intro{position:relative}
     } else if(g){ S.hts=S.hts||{}; drag={mode:'gap',k:g.dataset.gap,sy:e.clientY,start:S.hts[g.dataset.gap]||0}; }
     else if(h){
       const k=sel, el=els[k], v=item(k), r=el.getBoundingClientRect(), R=selRect();
-      drag={mode:(h.dataset.h==='fs'&&isBoxy(k))?'wh':h.dataset.h,k,sx:e.clientX,sy:e.clientY,fs:v.fs||1,w:r.width,ht:v.ht||r.height,x:v.x||0,size:Math.max(80,R.width),fss:selKeys.map(q=>({q,fs:(S.items[q]||{}).fs||1}))};
+      drag={mode:(h.dataset.h==='fs'&&isBoxy(k))?'wh':h.dataset.h,k,sx:e.clientX,sy:e.clientY,fs:v.fs||1,w:r.width/KZ(),ht:v.ht||r.height/KZ(),x:v.x||0,size:Math.max(80,R.width),fss:selKeys.map(q=>({q,fs:(S.items[q]||{}).fs||1}))};
     } else {
       const k=t.dataset.ek, gk=groupOf(k);
       const keys=gk?S.groups[gk]:(selKeys.length>1&&selKeys.includes(k)?selKeys:[k]);
@@ -2137,14 +2176,14 @@ main > section, #services > section, #services > .svc-intro{position:relative}
 
   document.addEventListener('pointermove',e=>{
     if(!drag) return;
-    const dx=e.clientX-(drag.sx||0), dy=e.clientY-(drag.sy||0);
+    const dx=e.clientX-(drag.sx||0), dy=e.clientY-(drag.sy||0), kz=KZ();
     if(drag.mode==='props'){ propsPin={x:Math.round(drag.x+dx),y:Math.round(drag.y+dy)}; return; }
     if(drag.mode==='scrub'){ setProp(drag.kind,drag.start+dx*drag.step*(e.shiftKey?10:1)); markDirty(); return; }
     if(drag.mode==='gap'){
-      const k=drag.k; let d=Math.round(drag.start+dy); const b=baseH[k]||secs[k].getBoundingClientRect().height;
+      const k=drag.k; let d=Math.round(drag.start+dy/kz); const b=baseH[k]||secs[k].getBoundingClientRect().height;
       if(b+d<40) d=Math.round(40-b);
       S.hts[k]=d; if(!d) delete S.hts[k]; applyGap(k);
-      const h=Math.round(secs[k].getBoundingClientRect().height);
+      const h=Math.round(secs[k].offsetHeight);
       showTag('섹션 높이 '+h+'px  ('+(d>0?'+':'')+d+'px)',e.clientX,e.clientY); return; }
     const k=drag.k, v=S.items[k];
     if(drag.mode==='move'){
@@ -2155,7 +2194,7 @@ main > section, #services > section, #services > .svc-intro{position:relative}
         const sx=bestSnap(b.l+ox,b.w,drag.targets.x); if(sx){ ox+=sx.d; hitX=sx.tg; }
         const sy=bestSnap(b.t+oy,b.h,drag.targets.y); if(sy){ oy+=sy.d; hitY=sy.tg; }
       }
-      drag.st.forEach(o=>{ const w=item(o.q); w.x=Math.round(o.x+ox); w.y=Math.round(o.y+oy); applyItem(o.q); });
+      drag.st.forEach(o=>{ const w=item(o.q); w.x=Math.round(o.x+ox/kz); w.y=Math.round(o.y+oy/kz); applyItem(o.q); });
       gv.classList.toggle('show',!!hitX); if(hitX) gv.style.left=Math.round(hitX.v)+'px';
       gh.classList.toggle('show',!!hitY); if(hitY) gh.style.top=Math.round(hitY.v)+'px';
       const lab=[hitX&&hitX.label,hitY&&('세로 '+hitY.label)].filter(Boolean).join(' · ');
@@ -2167,14 +2206,14 @@ main > section, #services > section, #services > .svc-intro{position:relative}
       showTag('크기 '+Math.round(parseFloat(getComputedStyle(els[k]).fontSize))+'px',e.clientX,e.clientY);
     } else if(drag.mode==='w'||drag.mode==='wl'){
       /* the left bar widens to the left: grow the box and shift it so its right edge stays put */
-      const dw=drag.mode==='w'?dx:-dx;
+      const dw=(drag.mode==='w'?dx:-dx)/kz;
       v.w=Math.round(clamp(drag.w+dw,40,2400));
       if(drag.mode==='wl') v.x=Math.round(drag.x-(v.w-drag.w));
       applyItem(k); fillProps(); showTag('너비 '+v.w+'px',e.clientX,e.clientY);
     } else if(drag.mode==='hb'||drag.mode==='wh'){
       /* 박스: 아래 막대 = 높이, 모서리 = 가로·세로 함께 */
-      v.ht=Math.round(clamp(drag.ht+dy,40,2400));
-      if(drag.mode==='wh') v.w=Math.round(clamp(drag.w+dx,40,2400));
+      v.ht=Math.round(clamp(drag.ht+dy/kz,40,2400));
+      if(drag.mode==='wh') v.w=Math.round(clamp(drag.w+dx/kz,40,2400));
       applyItem(k); fillProps(); showTag((drag.mode==='wh'?'너비 '+v.w+' · ':'')+'높이 '+v.ht+'px',e.clientX,e.clientY);
     }
   });
@@ -2310,7 +2349,7 @@ main > section, #services > section, #services > .svc-intro{position:relative}
     const sec=Object.keys(secs).find(k=>{ const r=secs[k].getBoundingClientRect(); return r.top<=cy&&r.bottom>=cy; })||Object.keys(secs)[0];
     const r=secs[sec].getBoundingClientRect();
     const id='tx-'+Date.now().toString(36);
-    S.added[id]={sec,left:Math.round(innerWidth/2-90-r.left),top:Math.round(cy-r.top-16),text:'텍스트를 입력하세요'};
+    S.added[id]={sec,left:Math.round((innerWidth/2-90-r.left)/KZ()),top:Math.round((cy-r.top-16)/KZ()),text:'텍스트를 입력하세요'};
     syncAdded(); applyItem(id); markDirty(); editAt(els[id],null);
   };
   function removeSel(){
@@ -2329,14 +2368,24 @@ main > section, #services > section, #services > .svc-intro{position:relative}
   bUndo.onclick=undo;
   bToggle.onclick=()=>setOn(!on);
 
+  /* 화면 단계별 편집값: d 데스크톱 · t 태블릿 · m 모바일 (지금 보고 있는 단계만 S, 나머지는 ALLBP에 보관) */
+  const BPN={d:'데스크톱',t:'태블릿',m:'모바일'};
+  let curBP=window.__flickBP||'d'; const ALLBP={d:null,t:null,m:null};
+  const emptySet=()=>({items:{},gaps:{},added:{},hts:{},groups:{},cg:{},photo:{}});
   function payload(){
+    ALLBP[curBP]=S; const bp={};
+    ['d','t','m'].forEach(b=>{ const x=ALLBP[b]; if(x) bp[b]=serializeSet(x); });
+    return {v:6,mat:['glass','clear','optical'].includes(S.mat)?S.mat:'matte',thick:[1.3,1.6].includes(S.thick)?S.thick:1,bp,
+      viewport:innerWidth+'x'+innerHeight,refW:window.__flickRefW||null,savedAt:new Date().toISOString()};
+  }
+  function serializeSet(S){
     const items={}; Object.entries(S.items).forEach(([k,v])=>{ const c={}; if(v.x) c.x=v.x; if(v.y) c.y=v.y; if(v.fs&&v.fs!==1) c.fs=v.fs; if(v.ls!=null) c.ls=v.ls; if(v.lh!=null) c.lh=v.lh; if(v.w) c.w=v.w; if(v.ht) c.ht=v.ht; if(v.col) c.col=v.col; if(v.ta) c.ta=v.ta; if(v.fw) c.fw=v.fw; if(v.ff) c.ff=v.ff; if(v.hide) c.hide=true; if(v.t&&Object.keys(v.t).length) c.t=clone(v.t); if(v.h&&Object.keys(v.h).length) c.h=clone(v.h); if(Object.keys(c).length) items[k]=c; });
     const gaps={}; Object.entries(S.gaps).forEach(([k,v])=>{ if(v) gaps[k]=v; });
     const hts={}; Object.entries(S.hts||{}).forEach(([k,v])=>{ if(v) hts[k]=v; });
     const groups={}; Object.entries(S.groups||{}).forEach(([g,ks])=>{ const a=ks.filter(q=>els[q]); if(a.length>1) groups[g]=a; });
     const cg={}; Object.entries(S.cg||{}).forEach(([g,v])=>{ if(typeof v==='number') cg[g]=v; });
     const photo={}; Object.entries(S.photo||{}).forEach(([k,v])=>{ if(v&&(v.x||v.y||(v.s&&v.s!==100))) photo[k]={x:v.x||0,y:v.y||0,s:v.s||100}; });
-    return {v:5,cg,photo,mat:['glass','clear','optical'].includes(S.mat)?S.mat:'matte',thick:[1.3,1.6].includes(S.thick)?S.thick:1,items,gaps,hts,groups,added:clone(S.added),viewport:innerWidth+'x'+innerHeight,savedAt:new Date().toISOString()};
+    return {cg,photo,items,gaps,hts,groups,added:clone(S.added)};
   }
   bSave.onclick=async()=>{
     const data=payload();
@@ -2357,6 +2406,18 @@ main > section, #services > section, #services > .svc-intro{position:relative}
 
   function load(data){
     if(!data||typeof data!=='object') return;
+    const mat=['glass','clear','optical'].includes(data.mat)?data.mat:'matte', thick=[1.3,1.6].includes(data.thick)?data.thick:1;
+    /* v6: 단계별 · 그 이전 저장본: 데스크톱 값으로 */
+    const src=(data.bp&&typeof data.bp==='object')?data.bp:{d:data};
+    ['d','t','m'].forEach(b=>{ ALLBP[b]=(src[b]&&typeof src[b]==='object')?parseSet(src[b]):null; });
+    /* 태블릿·모바일 값이 아직 없으면: 데스크톱에서 정한 것 중 위치·크기가 아닌 것(숨김·바꾼 글·굵기·서체·색·사진 위치)만 가져와 시작 */
+    if(ALLBP.d) ['t','m'].forEach(b=>{ if(ALLBP[b]) return; const n=emptySet();
+      Object.entries(ALLBP.d.items).forEach(([k,v])=>{ const c={}; ['hide','t','h','fw','ff','col'].forEach(f=>{ if(v[f]!=null) c[f]=clone(v[f]); }); if(Object.keys(c).length) n.items[k]=c; });
+      n.photo=clone(ALLBP.d.photo||{}); ALLBP[b]=n; });
+    S=Object.assign(ALLBP[curBP]||emptySet(),{mat,thick}); ALLBP[curBP]=S; hist=[]; applyAll();
+  }
+  function parseSet(data){
+    data=clone(data);
     /* 예전 저장본: 서비스 항목 목록(ul) 전체에 준 값은 항목 하나하나에 나눠 줌 */
     if(data.items&&typeof data.items==='object'){
       const uls=[...document.querySelectorAll('.svc ul')];
@@ -2391,7 +2452,7 @@ main > section, #services > section, #services > .svc-intro{position:relative}
     const groups={}; if(data.groups&&typeof data.groups==='object') Object.entries(data.groups).forEach(([g,ks])=>{ if(/^g-[a-z0-9]+$/.test(g)&&Array.isArray(ks)){ const a=[...new Set(ks.filter(q=>typeof q==='string'&&(els[q]||added[q])))]; if(a.length>1) groups[g]=a; } });
     const cg={}; if(data.cg&&typeof data.cg==='object') ['cards','steps'].forEach(g=>{ const v=data.cg[g]; if(typeof v==='number'&&isFinite(v)) cg[g]=clamp(Math.round(v),-50,600); });
     const photo={}; if(data.photo&&typeof data.photo==='object') ['branding','media','marketing','design'].forEach(k=>{ const v=data.photo[k]; if(v&&typeof v==='object'){ const n=(x,a,b,d)=>typeof x==='number'&&isFinite(x)?clamp(x,a,b):d; photo[k]={x:n(v.x,-100,100,0),y:n(v.y,-100,100,0),s:n(v.s,100,400,100)}; } });
-    S={items,gaps,added,hts,groups,cg,photo,mat:['glass','clear','optical'].includes(data.mat)?data.mat:'matte',thick:[1.3,1.6].includes(data.thick)?data.thick:1}; applyAll();
+    return {items,gaps,added,hts,groups,cg,photo};
   }
 
   /* ---------- start: load saved edits, show the bar to editors ---------- */
