@@ -128,7 +128,7 @@ html.gl-over :where(#flick-root) #stage{z-index:2;background:none!important}
 
 /* services: one chapter per screen, text alternates sides */
 :where(#flick-root) .svc-intro{padding-block:0}
-:where(#flick-root) .svc{height:calc(var(--vh) * 300)} /* 글자가 다 나온 뒤에도 한참 머물도록 (고정 구간 200vh) */
+:where(#flick-root) .svc{height:calc(var(--vh) * 260)} /* 고정 구간 160vh: 제목 → 서브 동시 등장 → 잠깐 머묾 → 롤업 */
 :where(#flick-root) .svc-stage{position:sticky;top:0;height:calc(var(--vh) * 100);height:calc(var(--vh) * 100);display:grid;align-items:center}
 :where(#flick-root) .svc .inner{width:100%;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:calc(var(--vw) * 4)}
 :where(#flick-root) .svc .copy{min-width:0;max-width:440px}
@@ -157,7 +157,7 @@ html.gl-over :where(#flick-root) #stage{z-index:2;background:none!important}
 :where(#flick-root) .svc.near h3 .bw,:where(#flick-root) .svc li.on .bw{opacity:1;filter:blur(0);transform:none}
 :where(#flick-root) .svc .bw.x{transition:none}
 
-  html.mq-860 :where(#flick-root) .svc{height:calc(var(--vh) * 310)}
+  html.mq-860 :where(#flick-root) .svc{height:calc(var(--vh) * 270)}
   html.mq-860 :where(#flick-root) .svc-stage{align-items:end;padding-bottom:calc(var(--vh) * 12)}
   html.mq-860 :where(#flick-root) .svc .inner{grid-template-columns:minmax(0,1fr)}
   html.mq-860 :where(#flick-root) .svc.l .copy,html.mq-860 :where(#flick-root) .svc.r .copy{grid-column:1;justify-self:stretch;max-width:none;padding:22px;border-radius:16px;background:var(--panel);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
@@ -1633,7 +1633,7 @@ frame();
       if(pinned&&p>.05&&p<.93) activeMedia=s.dataset.form;
       const items=s.querySelectorAll('li');
       const n=items.length, H=r.height-innerHeight, A=x=>x*innerHeight/Math.max(1,H), gapP=n>1?A(.39)/(n-1):0;  /* 등장 타이밍은 화면 높이 기준 고정 거리 → 섹션이 길어진 만큼 다 나온 뒤 머무는 시간이 늘어남 */
-      items.forEach((li,i)=>li.classList.toggle('on',pinned&&p>A(.286)+i*gapP));
+      items.forEach(li=>li.classList.toggle('on',pinned&&p>A(.42)));   /* 서브 타이틀은 두 번째 스크롤에 한꺼번에 */
       const ul=s.querySelector('ul'); if(ul) ul.classList.toggle('on',inView&&p>.08);
       if(inView){ best=k; }
     });
