@@ -86,7 +86,7 @@ html.mq-720 .mark{left:max(18px,env(safe-area-inset-left,0px));top:26px;width:10
 
 /* services: one chapter per screen, text alternates sides */
 .svc-intro{padding-block:0}
-.svc{height:calc(var(--vh) * 260)} /* 고정 구간 160vh: 제목 → 서브 동시 등장 → 잠깐 머묾 → 롤업 */
+.svc{height:calc(var(--vh) * 320)} /* 고정 구간 220vh: 제목 → 서브 동시 등장 → 잠깐 머묾 → 롤업 */
 .svc-stage{position:sticky;top:0;height:calc(var(--vh) * 100);height:calc(var(--vh) * 100);display:grid;align-items:center}
 .svc .inner{width:100%;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:calc(var(--vw) * 4)}
 .svc .copy{min-width:0;max-width:440px}
@@ -115,7 +115,7 @@ html.mq-720 .mark{left:max(18px,env(safe-area-inset-left,0px));top:26px;width:10
 .svc.near h3 .bw,.svc li.on .bw{opacity:1;filter:blur(0);transform:none}
 .svc .bw.x{transition:none}
 
-  html.mq-860 .svc{height:calc(var(--vh) * 270)}
+  html.mq-860 .svc{height:calc(var(--vh) * 330)}
   html.mq-860 .svc-stage{align-items:end;padding-bottom:calc(var(--vh) * 12)}
   html.mq-860 .svc .inner{grid-template-columns:minmax(0,1fr)}
   html.mq-860 .svc.l .copy,html.mq-860 .svc.r .copy{grid-column:1;justify-self:stretch;max-width:none;padding:22px;border-radius:16px;background:var(--panel);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
