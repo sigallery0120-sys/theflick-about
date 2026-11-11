@@ -348,7 +348,7 @@ html.mq-860 :where(#flick-root) .mission .inner{grid-template-columns:minmax(0,1
       <li><a href="#about" aria-current="page">ABOUT US</a></li>
       <li><a href="https://www.theflick.io/work" target="_blank" rel="noopener">WORK</a></li>
       <li><a href="https://www.theflick.io/" target="_blank" rel="noopener">VOUCHER</a></li>
-      <li><a href="#contact">CONTACT US</a></li>
+      <li><a href="https://www.theflick.io/contact" target="_blank" rel="noopener">CONTACT US</a></li>
     </ul>
   </nav>
 </header>
@@ -460,13 +460,6 @@ html.mq-860 :where(#flick-root) .mission .inner{grid-template-columns:minmax(0,1
     </div></div></div>
   </section>
 
-  <section class="contact wrap" id="contact" data-form="glassEnd" data-bg="dark" aria-labelledby="contact-title">
-    <div class="inner reveal">
-      <p class="eyebrow" id="contact-title">Contact</p>
-      <div class="reach"><span id="mail">theflick.office@gmail.com</span><span>070-4415-9960</span></div>
-      <p style="margin:22px 0 0"><button class="copybtn" type="button" id="copy">이메일 복사</button></p>
-    </div>
-  </section>
 </main>
 
 <script>
@@ -516,7 +509,7 @@ html.mq-860 :where(#flick-root) .mission .inner{grid-template-columns:minmax(0,1
 /* 왼쪽 원형 내비게이터 */
 (function(){
   const nav=document.getElementById('side-nav'); if(!nav) return;
-  const LIST=[['.hero','첫 화면'],['.svc[data-form="branding"]','브랜딩'],['.svc[data-form="media"]','미디어'],['.svc[data-form="marketing"]','마케팅'],['.svc[data-form="design"]','디자인'],['.recap','서비스 한눈에'],['.grow','함께 성장'],['.mission','미션'],['.contact','연락처']];
+  const LIST=[['.hero','첫 화면'],['.svc[data-form="branding"]','브랜딩'],['.svc[data-form="media"]','미디어'],['.svc[data-form="marketing"]','마케팅'],['.svc[data-form="design"]','디자인'],['.recap','서비스 한눈에'],['.grow','함께 성장'],['.mission','미션']];
   const items=LIST.map(([q,n])=>({el:document.querySelector(q),n})).filter(o=>o.el);
   const btns=items.map((o,i)=>{ const li=document.createElement('li'), b=document.createElement('button'); b.type='button'; b.setAttribute('aria-label',o.n); b.innerHTML='<i></i><span></span>'; b.querySelector('span').textContent=o.n;
     b.addEventListener('click',()=>{ const r=o.el.getBoundingClientRect(), rm=matchMedia('(prefers-reduced-motion:reduce)').matches;
@@ -1629,7 +1622,7 @@ frame();
   document.querySelectorAll('.reveal').forEach((el,i)=>{ if(el.classList.contains('card')) el.style.animationDelay=(i%4)*.08+'s'; io.observe(el); });
 
   const btn=document.getElementById('copy'), mail=document.getElementById('mail');
-  btn.addEventListener('click',()=>{
+  if(btn&&mail) btn.addEventListener('click',()=>{
     const done=()=>{ btn.textContent='복사했어요'; setTimeout(()=>btn.textContent='이메일 복사',1800); };
     const fallback=()=>{ const rg=document.createRange(); rg.selectNodeContents(mail); const s=getSelection(); s.removeAllRanges(); s.addRange(rg); btn.textContent='선택됨 · 복사하세요'; };
     try{ navigator.clipboard.writeText(mail.textContent.trim()).then(done,fallback); }catch(e){ fallback(); }
