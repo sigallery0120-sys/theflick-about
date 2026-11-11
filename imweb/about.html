@@ -1360,6 +1360,9 @@ function frameBody(){
     haloA: L(a.haloA,b.haloA,p),
     li: L(a.li,b.li,p),
   };
+  /* 세로 화면(휴대폰·태블릿): 글자는 화면 너비에 비례하므로 로고의 위아래 위치도 너비에 비례하게.
+     기준 화면(휴대폰 390×844 · 태블릿 834×1194)에서는 그대로, 주소창 때문에 화면이 짧은 실제 기기에서도 로고-글자 간격 비율 유지 */
+  if(narrow){ const ar=(window.__flickBP==='t')?834/1194:390/844; target.y*=cam.aspect/ar; }
 
   /* spin on its own only at the top and bottom of the page; elsewhere settle onto a whole turn */
   const idleW=L(a.idle||0,b.idle||0,te);
@@ -1900,7 +1903,7 @@ frame();
   function applyCg(){ Object.entries(CG).forEach(([g,el])=>{ if(!el) return; const v=S.cg&&S.cg[g]; el.style.gap=(typeof v==='number')?v+'px':''; }); dispatchEvent(new Event('flick-cards')); }
   function applyPhoto(){ window.__flickPhotoAdj=clone(S.photo||{}); }
   function applyAll(){ if(typeof applyMat==='function') applyMat(); syncAdded(); applyCg(); applyPhoto(); Object.keys(els).forEach(applyItem); Object.keys(secs).forEach(applyGap); refreshUnhide(); }
-  function showBP(){ const el=$('ed-bp'); if(!el) return; el.hidden=!on; el.textContent=BPN[curBP]+' 편집 중 · 기준 '+(window.__flickRefW||'')+'px'; }
+  function showBP(){ const el=$('ed-bp'); if(!el) return; el.hidden=!on; el.textContent=BPN[curBP]+' 편집 중 · 기준 '+(window.__flickRefW||'')+'px · 지금 화면 '+innerWidth+'×'+innerHeight; }
   function switchBP(){
     const nb=window.__flickBP||'d'; if(nb===curBP) return false;
     if(editing) finishEdit&&finishEdit();
@@ -1908,7 +1911,7 @@ frame();
     S=Object.assign(ALLBP[nb]||emptySet(),keep); ALLBP[nb]=S; hist=[]; select(null);
     if(typeof showBP==='function') showBP(); return true;
   }
-  let rz; addEventListener('resize',()=>{ clearTimeout(rz); rz=setTimeout(()=>{ switchBP(); applyAll(); fillProps(); },150); });
+  let rz; addEventListener('resize',()=>{ clearTimeout(rz); rz=setTimeout(()=>{ switchBP(); applyAll(); fillProps(); showBP(); },150); });
 
   /* ---------- UI ---------- */
   const $=id=>document.getElementById(id);
