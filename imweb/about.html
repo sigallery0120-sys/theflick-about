@@ -1448,7 +1448,13 @@ function frameBody(){
     else if(u<a2){ const k=(u-b1)/(a2-b1), e=k<.5?2*k*k:1-2*(1-k)*(1-k); X=L(xs,xe,L(k,e,.5)); Y=ty+Math.sin(k*Math.PI)*th*.08; S=sc; }
     else { const k=sm(0,1,(u-a2)/(1-a2)); X=L(xe,xr,k); Y=L(ty,yr,k); S=L(sc,sr,k); }
     target.x=X; target.y=Y; target.z=0; target.scale=S; target.bank+=roll; target.tilt+=pitch;
+    /* 회전: 날아가는 동안·훑는 동안 멈추지 않고 고르게 3바퀴 (사진이 걷히는 시점부터 시작, 제자리 직전에만 감속) */
+    const Y0=a.R*TAU+a.yaw, Y1=b.R*TAU+b.yaw+2*TAU, kk=clamp01((u-.09)/.91);
+    target.yaw=L(Y0,Y1,L(kk,sm(0,1,kk),.3));
   }
+  /* 위에서 2바퀴를 더 돌았으니 그 뒤 구간(데스크톱)도 같은 만큼 더해서 이어짐 (되감김 없음) */
+  if(!sweepOn&&!narrow&&SWr>0){ const ex=f=>(f===F.glassTop||f===F.glassBack||f===F.glassSide||f===F.glassEnd)?2*TAU:0;
+    if(a!==F.design||b!==F.glassTop) target.yaw+=L(ex(a),ex(b),te); }
   /* 데스크톱 전용 자리(서비스 한눈에: 오른쪽 위). 앞뒤 구간과는 위치·크기를 이어서 보간 → 다음 구간으로 갈 때 회전하며 내려감 */
   if(!narrow && !sweepOn && (a.dEdge!=null||b.dEdge!=null||a.dXk||b.dXk)){
     const sc=f=>(f.dScale!=null?f.dScale:f.scale)*fit;
