@@ -1,0 +1,30 @@
+<!-- THE FLICK · ABOUT 페이지 (아임웹 코드 위젯용) -->
+<div id="flick-root" aria-busy="true"></div>
+<script>
+(function(){
+  if(window.__flickLoaded) return; window.__flickLoaded=true;
+  /* 페이지 파일 위치: GitHub 저장소의 imweb 폴더 (아래 @뒤 값은 고정할 버전) */
+  var BASE='https://cdn.jsdelivr.net/gh/sigallery0120-sys/theflick-about@__REF__/imweb/';
+  var root=document.getElementById('flick-root');
+  /* 아임웹 기본 화면(헤더·메뉴·푸터·여백)은 이 페이지에서만 숨기고, 이 페이지가 화면 전체를 씀 */
+  document.body.appendChild(root);
+  var st=document.createElement('style');
+  st.textContent='body>*:not(#flick-root):not(script):not(style){display:none!important}'
+    +'html,body{margin:0!important;padding:0!important;height:auto!important;min-height:0!important;overflow-x:hidden!important;overflow-y:auto!important;background:#f9f9f9}'
+    +'#flick-root{display:block;position:relative;width:100%}';
+  document.head.appendChild(st);
+  fetch(BASE+'about.html').then(function(r){ if(!r.ok) throw new Error(r.status); return r.text(); }).then(function(html){
+    root.innerHTML=html.split('__BASE__').join(BASE);
+    /* 스크립트는 순서대로 다시 실행 (외부 파일은 다 받은 뒤 다음으로) */
+    var list=Array.prototype.slice.call(root.querySelectorAll('script'));
+    var run=function(i){
+      if(i>=list.length){ root.removeAttribute('aria-busy'); setTimeout(function(){ window.dispatchEvent(new Event('resize')); window.dispatchEvent(new Event('scroll')); },300); return; }
+      var old=list[i], s=document.createElement('script');
+      for(var a=0;a<old.attributes.length;a++) s.setAttribute(old.attributes[a].name,old.attributes[a].value);
+      if(old.src){ s.onload=s.onerror=function(){ run(i+1); }; old.parentNode.replaceChild(s,old); }
+      else { s.textContent=old.textContent; old.parentNode.replaceChild(s,old); run(i+1); }
+    };
+    run(0);
+  }).catch(function(e){ root.textContent='페이지를 불러오지 못했어요. 잠시 후 새로고침해 주세요.'; });
+})();
+</script>
