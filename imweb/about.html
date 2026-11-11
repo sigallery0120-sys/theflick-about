@@ -163,10 +163,6 @@ html.gl-over :where(#flick-root) #stage{z-index:2;background:none!important}
 :where(#flick-root) .dock{position:fixed;left:50%;bottom:max(22px,calc(env(safe-area-inset-bottom,0px) + 16px));z-index:15;transform:translate(-50%,14px);opacity:0;pointer-events:none;display:flex;align-items:center;gap:14px;padding:10px 16px 10px 18px;border:1px solid var(--faint);border-radius:999px;background:var(--panel);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);transition:opacity .4s,transform .5s cubic-bezier(.2,.7,.2,1);max-width:calc(100% - 32px)}
 :where(#flick-root) .dock.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}
 :where(#flick-root) .dock{display:none!important}   /* 하단 막대 내비게이터 → 왼쪽 원형 내비게이터로 교체 */
-/* 모바일(767px 이하) 전용 */
-html.bp-m :where(#flick-root) .side-nav{display:none!important}                     /* 왼쪽 원형 내비게이터 없음 */
-html.bp-m :where(#flick-root) .svc.l .copy,html.bp-m :where(#flick-root) .svc.r .copy{background:none;backdrop-filter:none;-webkit-backdrop-filter:none;padding:0;border-radius:0}   /* 서비스 글자 뒤 반투명 박스 없음 */
-html.bp-m :where(#flick-root) #stage{z-index:2;background:none!important}           /* 3D 로고가 글자 위로 (글자는 3D 뒤편) · 배경색은 body가 담당 */
 /* 왼쪽 원형 내비게이터: 페이지 전체 구간, 현재 구간은 크고 진한 원 */
 :where(#flick-root) .side-nav{position:fixed;left:max(22px,calc(env(safe-area-inset-left,0px) + 14px));top:50%;transform:translateY(-50%);z-index:16;margin:0;padding:0;list-style:none;display:grid;gap:14px;justify-items:center}
 :where(#flick-root) .side-nav button{all:unset;cursor:pointer;position:relative;width:20px;height:20px;display:grid;place-items:center}
