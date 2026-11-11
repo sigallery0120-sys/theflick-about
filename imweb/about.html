@@ -116,6 +116,8 @@ html.mq-720 :where(#flick-root) .mark{left:max(18px,env(safe-area-inset-left,0px
 :where(#flick-root) .hero{min-height:calc(var(--vh) * 100);display:grid;align-content:end;padding-block:0 calc(var(--vh) * 13);text-align:center}
 :where(#flick-root) .hero .inner{max-width:900px}
 html.gl-over :where(#flick-root) #stage{z-index:2;background:none!important}
+:where(#flick-root) .gl-front #stage{z-index:2;background:none!important}
+html.gl-front :where(#flick-root) body{background:radial-gradient(ellipse 60% 45% at 55% 40%,var(--glow),transparent 70%) fixed,var(--bg)}
 :where(#flick-root) .hero .lead{margin:0;font-family:var(--f-body);font-size:clamp(24px,calc(var(--vw) * 3.2),40px);font-weight:700;line-height:1.45;letter-spacing:-.025em;text-wrap:balance;animation:heroIn 1s .3s cubic-bezier(.2,.7,.2,1) both}
 :where(#flick-root) .hero .sub{margin:22px auto 0;max-width:34em;color:var(--dim);font-size:17px;text-wrap:balance;animation:heroIn 1s .5s cubic-bezier(.2,.7,.2,1) both}
 @keyframes heroIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
@@ -1429,7 +1431,7 @@ function frameBody(){
   let sweepOn=false;
   if(!narrow&&SWr>0&&TB&&a===F.design&&b===F.glassTop){
     sweepOn=true;
-    const T=1+SWr, a1=1/T, a2=(1+SWr-.25)/T;
+    const T=1+SWr, a1=.28, b1=.32, a2=(1+SWr-.25)/T;   /* 빠짐 0~.28 · 다시 들어와 훑기 .32~a2 · 제자리로 */
     const wx=px=>(px/innerWidth-.5)*vw, wy=py=>(.5-py/innerHeight)*vh;
     const ty=wy(TB.cy), th=TB.h/innerHeight*vh;
     const sc=Math.max(.22,Math.min(.9,th*.75/1.62));
@@ -1437,10 +1439,15 @@ function frameBody(){
     const sr=(b.dScale!=null?b.dScale:b.scale)*fit, xr=vw*(.5-(b.dEdge||.1))-1.62*sr, yr=(b.dY!=null?b.dY:0)*vh;
     const xs=-vw/2-1.62*sc*1.6, xe=wx(TB.r)+1.62*sc*1.1;
     let X,Y,S;
-    if(u<a1){ const k=sm(0,1,u/a1); X=L(x0,xs,k); Y=L(y0,ty,k); S=L(s0,sc,sm(0,.7,u/a1)); }
-    else if(u<a2){ const k=(u-a1)/(a2-a1), e=k<.5?2*k*k:1-2*(1-k)*(1-k); X=L(xs,xe,L(k,e,.5)); Y=ty+Math.sin(k*Math.PI)*th*.08; S=sc; }
+    let roll=0, pitch=0;
+    if(u<a1){ /* 왼쪽 위로 크게 돌며 빠져나감 (화살표 방향) */
+      const k=sm(0,1,u/a1), kx=k*k*(3-2*k);
+      X=L(x0,xs,kx); Y=L(y0,vh*.34,Math.sin(k*Math.PI/2)); S=L(s0,sc,sm(0,.8,u/a1));
+      roll=Math.sin(k*Math.PI)*.9; pitch=Math.sin(k*Math.PI)*.45; }
+    else if(u<b1){ X=xs; Y=ty; S=sc; }
+    else if(u<a2){ const k=(u-b1)/(a2-b1), e=k<.5?2*k*k:1-2*(1-k)*(1-k); X=L(xs,xe,L(k,e,.5)); Y=ty+Math.sin(k*Math.PI)*th*.08; S=sc; }
     else { const k=sm(0,1,(u-a2)/(1-a2)); X=L(xe,xr,k); Y=L(ty,yr,k); S=L(sc,sr,k); }
-    target.x=X; target.y=Y; target.z=0; target.scale=S;
+    target.x=X; target.y=Y; target.z=0; target.scale=S; target.bank+=roll; target.tilt+=pitch;
   }
   /* 데스크톱 전용 자리(서비스 한눈에: 오른쪽 위). 앞뒤 구간과는 위치·크기를 이어서 보간 → 다음 구간으로 갈 때 회전하며 내려감 */
   if(!narrow && !sweepOn && (a.dEdge!=null||b.dEdge!=null||a.dXk||b.dXk)){
@@ -1524,7 +1531,9 @@ function frameBody(){
   { const de=document.documentElement, use=matName!=='matte'&&TXT.ok&&!de.classList.contains('ed-on');
     /* 첫 화면이 보이는 동안만 3D를 글자 위로: 유리가 덮는 곳만 휘어진 글자, 나머지는 원래 선명한 글자 */
     const hb=heroEl?heroEl.getBoundingClientRect().bottom:0;
-    de.classList.toggle('gl-text',use); de.classList.toggle('gl-over',use&&hb>0); TEXTU.uTextOn.value=use?1:0; textQuad.visible=false;
+    de.classList.toggle('gl-text',use); de.classList.toggle('gl-over',use&&hb>0);
+    /* OUR SERVICE(데스크톱): 로고가 글자 앞으로 → 로고가 지나간 뒤에 글자가 보임 */
+    de.classList.toggle('gl-front',!narrow&&!de.classList.contains('ed-on')&&(sweepOn||(window.__flickBP==='d'&&a===F.glassTop&&b===F.glassTop))); TEXTU.uTextOn.value=use?1:0; textQuad.visible=false;
     TEXTU.uView.value.set(innerWidth,innerHeight); TEXTU.uDpr.value=renderer.getPixelRatio(); TEXTU.uScroll.value=scrollY;
     TEXTU.uTOrg.value.set(TXT.ox,TXT.oy); TEXTU.uTSize.value.set(TXT.w,TXT.h);
     if(!(frameNo++%6)){ TEXTU.uInk.value.copy(cssCol('--ink')); TEXTU.uDim.value.copy(cssCol('--dim')); TEXTU.uBg.value.copy(cssCol('--bg')); } }
@@ -1802,13 +1811,13 @@ frame();
     window.__flickTB={l:f0.left,r:fl.right,cy:(f0.top+f0.bottom)/2,h:f0.bottom-f0.top};
     if(r.bottom<0||r.top>vh*1.2){ return; }
     let lx;
-    if(r.top>2) lx=-1e5;                     /* 아직 고정 전: 로고는 왼쪽 밖 → 글자 숨김 */
-    else if(off>SW) lx=1e5;                  /* 훑기 끝: 전부 보임 */
-    else { const L=window.__flickLogoX; lx=(L&&performance.now()-L.t<300)?L.x:(-innerWidth*.1+(fl.right+innerWidth*.15)*Math.min(1,off/(SW-vh*.25))); }
+    if(off>SW) lx=1e5;                       /* 훑기 끝: 전부 보임 */
+    else { const L=window.__flickLogoX, T=vh+SW, uu=(off+vh)/T, b1=.32, a2=(T-vh*.25)/T;
+      lx=(L&&performance.now()-L.t<300)?L.x:(uu<b1?-1e5:-innerWidth*.1+(fl.right+innerWidth*.15)*Math.min(1,(uu-b1)/(a2-b1))); }
     chars.forEach((c,i)=>{ const q=rs[i], cw=Math.max(8,q.width), e0=(lx-(q.left))/(cw*1.6), e=Math.min(1,Math.max(0,e0)), ee=e*e*(3-2*e);
       if(c._e===ee) return; c._e=ee;
       c.style.opacity=ee.toFixed(3); c.style.filter=ee<.99?'blur('+((1-ee)*12).toFixed(1)+'px)':''; c.style.transform=ee<.99?'translateY('+((1-ee)*.35).toFixed(3)+'em)':''; });
-    if(r.top<=2&&off<=SW+vh*.1) raf=requestAnimationFrame(frame);   /* 로고가 움직이는 동안 계속 따라감 */
+    if(r.top<vh&&off<=SW+vh*.1) raf=requestAnimationFrame(frame);   /* 로고가 움직이는 동안 계속 따라감 */
   }
   const kick=()=>{ if(!raf) raf=requestAnimationFrame(frame); };
   addEventListener('scroll',kick,{passive:true}); addEventListener('resize',kick);
